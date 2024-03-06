@@ -1,8 +1,12 @@
 package com.mj.mysns.domain.post.api.payload;
 
-public record CreatePostRequest(
-//    Long userId,
-    String content
-) {
+import jakarta.validation.constraints.NotNull;
 
+public record CreatePostRequest(
+
+    @NotNull
+    String content
+
+//    Long userId,
+) {
 }

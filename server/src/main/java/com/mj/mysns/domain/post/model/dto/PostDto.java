@@ -1,13 +1,10 @@
 package com.mj.mysns.domain.post.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import jakarta.validation.constraints.NotNull;
+import lombok.Value;
 
-@Getter
-@AllArgsConstructor
-public class PostDto {
-
+public record PostDto(
+    @NotNull String content) {
 //    Long userId;
 
-    String content;
 }

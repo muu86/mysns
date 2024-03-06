@@ -3,7 +3,9 @@ package com.mj.mysns.domain.post.api;
 import com.mj.mysns.domain.post.api.payload.CreatePostRequest;
 import com.mj.mysns.domain.post.api.payload.CreatePostResponse;
 import com.mj.mysns.domain.post.model.dto.PostDto;
+import com.mj.mysns.domain.post.model.entity.Post;
 import com.mj.mysns.domain.post.service.PostService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,9 +27,9 @@ public class PostController {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CreatePostResponse> createPost(
-        @RequestBody CreatePostRequest createPostRequest) {
+        @Valid @RequestBody CreatePostRequest createPostRequest) {
         PostDto newPost = new PostDto(createPostRequest.content());
-        PostDto savedPost = postService.createPost(newPost);
+        PostDto savedPost = postService.createPost(new PostDto(null));
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(new CreatePostResponse("success"));

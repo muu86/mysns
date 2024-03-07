@@ -4,7 +4,9 @@
 **Authorization Server** 프로젝트는 스프링 시큐리티 프로젝트와 분리되어 별도로 제공된다.
 
 ## Client 모듈
+
 인가서버 및 리소스 서버와의 통신을 담당하는 클라이언트의 기능을 **필터** 기반으로 구현한 모듈.
+
 - OAuth2.0 Login
   - 애플리케이션의 사용자를 외부 OAuth 2.0 Provider 나 OpenID Connect 1.0 Provider 계정으로 로그인할 수 있는 기능을 제공한다.
   - Authorization Code 방식을 사용한다.
@@ -13,8 +15,8 @@
   - Client Credentials, Resource Owner Password Credentials, Refresh Token
   - 리소스 서버의 자원 접근에 대한 연동 모듈을 구현할 수 있다.
 
-
 ### 환경 설정 흐름
+
 - application.yml
   - application.yml 설정 파일에 클라이언트 설정과 인가서버 엔드포인트 설정을 한다.
 - OAuth2ClientProperties
@@ -55,17 +57,20 @@ spring:
     인가서버에서 JSON 웹 키 (JWK) set을 가져올 때 사용할 uri.
     이 key set엔 ID Token의 JWT를 검증할 때 사용할 암호키가 있으며,
     UserInfo 응답을 검증할 때도 사용할 수 있다.
-    
 
 ### ClientRegistration
+
 OpenID Connect Provider의 설정 엔드포인트나 인가 서버의 메타데이터 엔드포인트를 찾아 초기화할 수 있다.
+
 ```java
 ClientRegistration clientRegistration = ClientRegistrations.fromIssuerLocation("http://idp.example.issuer").build();
 // 위 코드는 200 응답을 받을 때까지 https://idp.example.com/issuer/.well-known/openid-configuration, https://idp.example.com/.well-known/oauth-authorization-server 에 차례대로 질의해본다
 ```
 
 ### CommonOAuth2Provider
+
 구글, 깃허브, 페이북, Okta 4개의 글로벌 서비스 제공자는 기본으로 제공된다.
+
 ```java
 public enum CommonOAuth2Provider {
     GOOGLE {
@@ -89,13 +94,16 @@ public enum CommonOAuth2Provider {
 ```
 
 ### ClientRegistrationRepository
+
 OAuth2.0 과 OpenID Connect 1.0 의 ClientRegistration 저장소
 
 ### OAuth2AuthorizationRequestRedirectFilter
-클라이언트가 사용자의 브라우저를 통해 인가 서버의 권한 부여 엔드포인트로 리다이렉션하여 Authoriztion Code Grant Flow를 시작한다.
-request url이 **/oauth2/authorization/{registrationId}** 에 매치되면 필터가 작동한다. 
 
-### Authorization Code 요청하고 리다이렉트되는 흐름
+클라이언트가 사용자의 브라우저를 통해 인가 서버의 권한 부여 엔드포인트로 리다이렉션하여 Authoriztion Code Grant Flow를 시작한다.
+request url이 **/oauth2/authorization/{registrationId}** 에 매치되면 필터가 작동한다.
+
+### Code 요청하고 리다이렉트되는 흐름
+
 - 사용자 Request -> oauth2/authorization/{registrationId}
 - OAuth2AuthorizationRequestRedirectFilter 발동
 - DefaultOAuth2AuthorizationRequestResolver
@@ -104,4 +112,3 @@ request url이 **/oauth2/authorization/{registrationId}** 에 매치되면 필�
   - 인가 서버에 코드를 요청하기 위한 정보들을 담고 있음.
 - OAuth2AuthorizationRequestRepository
   - 인가 요청을 시작한 시점부터 인가 요청을 받는 시점까지(리다이렉트) OAuth2AuthorizationRequest를 유지함. 기본적으로 세션에 저장.
-

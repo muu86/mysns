@@ -1,4 +1,4 @@
-package com.mj.mysns.domain.post.api.payload;
+package com.mj.mysns.api.payload;
 
 public record CreatePostResponse(String message) {
 

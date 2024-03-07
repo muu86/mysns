@@ -1,4 +1,4 @@
-package com.mj.mysns.domain.post.api;
+package com.mj.mysns.api;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

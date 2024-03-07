@@ -1,9 +1,8 @@
-package com.mj.mysns.domain.post.api;
+package com.mj.mysns.api;
 
-import com.mj.mysns.domain.post.api.payload.CreatePostRequest;
-import com.mj.mysns.domain.post.api.payload.CreatePostResponse;
+import com.mj.mysns.api.payload.CreatePostRequest;
+import com.mj.mysns.api.payload.CreatePostResponse;
 import com.mj.mysns.domain.post.model.dto.PostDto;
-import com.mj.mysns.domain.post.model.entity.Post;
 import com.mj.mysns.domain.post.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

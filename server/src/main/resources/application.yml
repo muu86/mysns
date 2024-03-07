@@ -8,3 +8,21 @@ spring:
     hibernate:
       ddl-auto: update # You can change this according to your needs (e.g., create-drop, validate)
     show-sql: true # Set to true to see SQL statements in the console
+
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            clientId: oauth2-client-app
+            clientSecret: qcWhQDyT81IdRxHd1Q9QjQGz3PnpI41A
+            scope:
+              - openid
+              - profile
+              - email
+#          google:
+#            clientId: 123
+#            clientSecret: 1233
+        provider:
+          keycloak:
+            issuerUri: http://localhost:3333/realms/master

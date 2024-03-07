@@ -4,9 +4,9 @@
 
 저는 이 프로젝트에서 스프링 시큐리티에서 제공하는 기능들을 활용해보고 공부하는 게 주 목적이므로 스프링 백엔드 서버가 클라이언트 역할과 리소스 서버 역할을 같이 하도록 개발하려고 합니다.
 
-그런데 더 자연스러운 형태는 nextjs가 `인증 클라이언트`가 되어서 인증 과정을 거쳐 인가 서버로부터 토큰을 발급받고 스프링 API 서버는 `리소스 서버`가 되어 토큰 검증 후에 리소스를 내주는 형태로 구성하는게 자연스러울 것 같습니다. nextjs도 OAuth2 관련 라이브러리들(Auth0, Nextjs 등)이 있기 때문에 구현하는게 어려울 것 같지 않습니다.
+그런데 더 자연스러운 구성은 nextjs가 `인증 클라이언트`가 되어서 인증 과정을 거쳐 인가 서버로부터 토큰을 발급받고 스프링 API 서버는 `리소스 서버`가 되어 토큰 검증 후에 리소스를 내주는 것 같습니다. nextjs도 OAuth2 관련 라이브러리들(Auth0, Nextjs 등)이 있기 때문에 구현하는게 어렵지 않을 것 같습니다.
 
-## 흐름
+## 인증 과정에서 커스터마이징이 필요한 부분
 
 1. nextjs 로그인 페이지에서 OAuth2 로그인을 시도한다.
 
@@ -19,13 +19,13 @@
 
 ---
 
-4. 스프링 서버에 저장되지 않은 사용자는 Repository에 저장한다.
+4. 서버에 저장되지 않은 사용자는 Repository에 저장한다.
 5. 백엔드 서버에서 프론트 url로 브라우저를 리다이렉트한다.
 6. 브라우저에 토큰을 저장하여 백앤드 서버로 재요청 시에 로그인 과정을 생략한다.
 
 4 ~ 6번을 처리하기 위해서 Security 설정을 커스터마이징해야 하고 nextjs와 스프링부트를 제가 원하는 방식으로 구성하는 예제도 거의 없어서 구현한 코드를 정리해보려고 합니다.
 
-## Spring Security 설정
+## Spring OAuth2 설정
 
 Security FilterChain을 설정합니다.
 
@@ -42,9 +42,9 @@ public class OAuth2LoginSecurityConfig {
             .authorizeHttpRequests(requests -> requests.anyRequest().authenticated());
         http
             .oauth2Login(oauth2 -> oauth2
-                // client가 발급받은 access token으로 userInfo를 조회한 후 권한 부여 등을 설정하는 UserService 커스터마이징
+                // client가 발급받은 access token으로 userInfo를 조회한 후 권한 부여 등을 설정하는 OAuth2UserService 커스터마이징
                 .userInfoEndpoint(userInfo -> userInfo
-                    .oidcUserService(this.oidcUserService()))
+                    .oidcUserService(this.customOidcUserService()))
                 // 인증에 성공하면 작동하는 AuthenticationSuccessHandler 클래스를 커스터마이징
                 .successHandler(this.customOAuth2AuthenticationSuccessHandler())
             );
@@ -52,22 +52,101 @@ public class OAuth2LoginSecurityConfig {
         return http.build();
     }
 
-    // 로컬에서 개발할 때 프론트가 백엔트로 api요청을 하면 CORS 에러가 나므로 프론트 url은 허용하도록 설정
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.addAllowedHeader("*");
-        configuration.addAllowedMethod("*");
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
-        urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", configuration);
-        return urlBasedCorsConfigurationSource;
-    }
-
-    // 생략
+    // ...
 }
 ```
+
+### 커스터마이징 관련해서 기억할만한 패턴
+
+아래 스프링 공식문서를 살펴보던 중 기존 서비스의 행동을 그대로 위임하면서 추가적인 행동만 확장하고 싶을 때 lambda식을 리턴하고 기존 서비스는 지역변수에 가두는 것을 확인했습니다. 마치 자바스크립트의 클로저처럼 작성된 코드가 신기해서 기록해놓습니다. 자바스크립트의 클로저는 내부 데이터를 조작할 수도 있으므로 동작 방식은 다르지만 객체를 생성하는 패턴은 같습니다.  
+저는 커스터마이징한 클래스에서 다른 Bean이 필요해 질 것 같아서(UserEntity를 Repository에 저장하기 위한 Service 컴포넌트를 Autowired 하는 등) 이 패턴은 사용하지 않았습니다. 디폴트 클래스를 상속하고 `super.xxx()`를 호출하여 기존 행위를 위임했습니다.
+
+https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.html#oauth2login-advanced-map-authorities
+![alt text](<../images/스크린샷 2024-03-08 오전 2.55.43.png>)
+
+## OAuth2 인증된 사용자를 데이터베이스 저장하기
+
+인가 서버에서 인증한 사용자를 데이터베이스에 저장하려고 합니다. oauth2 인증 단계 중 어느 단계에 유저를 저장하는 게 좋을 지를 고민했습니다. `OAuth2UserService`에서 해도 괜찮아 보이고 인증이 성공한 경우 작동하는 `AuthenticationSuccessHandler`에서 하는 것도 나쁘지 않아 보입니다.  
+OAuth2UserService의 원래 역할이 access token으로 userInfo를 조회하는 것이고 AuthenticationSuccessHandler의 원래 역할은 클라이언트를 리다이렉트 시키는 것이라 사용자 저장을 위해서 OAuth2UserService를 커스터마이징하는 것이 더 자연스러운 방법인 것 같습니다.
+
+OAuth2 방식일 때는 OAuth2UserService 인터페이스를 구현한 `DefaultOAuth2UserService`가 사용되고 OpenID Connect 방식일 때 `OidcUserService`가 사용됩니다. OpenID Connect 방식은 ID Token이 JWT로 발급되어 claims에서 사용자 정보를 추출할 수 있지만, 스코프를 다시 확인하기 위해 userInfo 엔드포인트에 request할 수도 있습니다.
+
+OidcUserService 클래스의 소스코드 중
+![alt text](<../images/스크린샷 2024-03-08 오전 3.29.18.png>)
+
+### CustomOidcUserService 클래스 작성
+
+```java
+// 참고
+// https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.html#oauth2login-advanced-map-authorities-oauth2userservice
+@Component
+@RequiredArgsConstructor
+public class CustomOidcUserService extends OidcUserService {
+
+    // 도메인 내 UserService
+    private final UserService userService;
+
+    @Override
+    public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
+        OidcUser oidcUser = super.loadUser(userRequest);
+
+        UserDto userDto = UserDto.builder()
+            .userName(oidcUser.getClaim("name"))
+            .firstName(oidcUser.getGivenName())
+            .lastName(oidcUser.getFamilyName())
+            .email(oidcUser.getEmail())
+            .oauth2(true)
+            // 하드코딩
+            .provider("keycloak")
+            .build();
+        UserDto saved = userService.saveUser(userDto);
+
+//        OAuth2AccessToken accessToken = userRequest.getAccessToken();
+//        Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
+//
+//        // TODO
+//        // 1) Fetch the authority information from the protected resource using accessToken
+//        // 2) Map the authority information to one or more GrantedAuthority's and add it to mappedAuthorities
+//
+//        // 3) Create a copy of oidcUser but use the mappedAuthorities instead
+//        oidcUser = new DefaultOidcUser(mappedAuthorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
+
+        return oidcUser;
+    }
+}
+```
+
+```java
+@Configuration
+@EnableWebSecurity
+public class OAuth2LoginSecurityConfig {
+
+    // Configuration 클래스에 필드 주입으로 해결
+    @Autowired
+    OidcUserService customOidcUserService;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        http
+            .authorizeHttpRequests(requests -> requests.anyRequest().authenticated());
+        http
+            .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                    .oidcUserService(customOidcUserService))
+                .successHandler(this.customOAuth2AuthenticationSuccessHandler())
+            );
+
+        return http.build();
+    }
+}
+```
+
+OAuth2 인증 후 데이터베이스에 유저 저장 확인
+<image src="../images/스크린샷 2024-03-08 오전 4.32.51.png" width=1200>
 
 ### AuthenticationHandler
 

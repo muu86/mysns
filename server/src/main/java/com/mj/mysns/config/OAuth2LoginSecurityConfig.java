@@ -1,13 +1,14 @@
 package com.mj.mysns.config;
 
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,6 +21,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class OAuth2LoginSecurityConfig {
 
+    @Autowired
+    OidcUserService customOidcUserService;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -29,16 +33,9 @@ public class OAuth2LoginSecurityConfig {
         http
             .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http
-//            .oauth2Login(oauth2 -> {
-//                oauth2.successHandler((request, response, authentication) -> {
-//                    Object principal = authentication.getPrincipal();
-//                    System.out.println(principal);
-//                });
-//            });
-//            .oauth2Login(Customizer.withDefaults());
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
-                    .oidcUserService(this.oidcUserService()))
+                    .oidcUserService(customOidcUserService))
                 .successHandler(this.customOAuth2AuthenticationSuccessHandler())
             );
 
@@ -61,9 +58,9 @@ public class OAuth2LoginSecurityConfig {
         return new CustomOAuth2AuthenticationSuccessHandler();
     }
 
-    OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService() {
-        return new CustomOidcUserService();
-    }
+//    OAuth2UserService<OidcUserRequest, OidcUser> customOidcUserService() {
+//        return new CustomOidcUserService();
+//    }
 
 
 }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostServiceImpl implements PostService {
+public class DefaultPostService implements PostService {
 
     private final PostRepository postRepository;
 

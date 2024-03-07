@@ -27,8 +27,20 @@ public class User {
     private String email;
 
     // oauth2 인증 사용자인지
-    // 일단 기본 회원가입은 개발하지 않을 예정
+    // 일단 oauth2만 제공하고 기본 회원가입은 개발하지 않을 예정
     private Boolean oauth2;
 
     private String provider;
+
+    public static User create(String username, String firstName, String lastName, String email,
+        Boolean oauth2, String provider) {
+        User user = new User();
+        user.username = username;
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.email = email;
+        user.oauth2 = oauth2;
+        user.provider = provider;
+        return user;
+    }
 }

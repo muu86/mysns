@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +26,9 @@ public class CustomOAuth2AuthenticationSuccessHandler extends
 //        token.setHttpOnly(true);
         token.setSecure(false);
         token.setPath("/");
-        response.addCookie(token);
+//        response.addCookie(token);
+
+        response.addHeader("Authentication", "Bearer " + ((DefaultOidcUser) authentication.getPrincipal()).getIdToken().getTokenValue());
 
         super.onAuthenticationSuccess(request, response, authentication);
     }

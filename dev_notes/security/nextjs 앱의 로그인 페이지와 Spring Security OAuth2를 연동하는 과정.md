@@ -23,7 +23,7 @@
 
 4. **데이터베이스에 존재하지 않는 사용자를 저장한다.**
 5. **백엔드 서버에서 프론트 url로 브라우저를 리다이렉트한다.**
-6. **프론트로 JWT를 발급하고 api 요청 시 인증을 생략한다.**
+6. **프론트로 JWT를 발급해서 api 요청 시 토큰으로 인증한다**
 
 4 ~ 6번을 처리하기 위해서 Security 설정을 커스터마이징해야 하고 nextjs와 스프링부트를 제가 원하는 방식으로 구성하는 예제도 거의 없어서 구현한 코드를 정리해보려고 합니다.
 
@@ -212,4 +212,250 @@ defaultTargetUrl을 true로 설정하면 defaultTargetUrl로 리다이렉트됩�
 ## 인증된 사용자에게 jwt 토큰을 발급하고 앞으로의 api 요청을 검증하기
 
 인증 서버가 보통 `access token`을 JWT로 발급하기 때문에 이 토큰을 그대로 사용자에게 전달하고 앞으로의 api 요청 헤더에 이를 포함시키면 될 것 같습니다. 토큰을 검증하는 건 spring `oauth2-resource-server` 라이브러리를 사용하면 간단할 것 같습니다.  
-그 전에 공부 겸 테스트 용으로 직접 JWT를 인코딩해서 사용자에게 발급하고 디코딩하는 코드를 작성해보려고 합니다.
+그 전에 공부 겸 테스트 용으로 직접 JWT를 직접 사용자에게 발급하는 코드를 작성해보려고 합니다.
+
+### 암호화 이해
+
+#### 무결성 검사(MessageDigest)
+
+- 원본이 전송 과정에서 변경되지 않았음을 확인하는 것.
+- 입력 값으로 전달된 데이터를 고정 길이의 해쉬 값으로 출력.
+- 해쉬 함수로 도출된 해쉬값은 원본 값을 도출하는 것이 거의 불가능하다.(https://docs.spring.io/spring-security/reference/features/authentication/password-storage.html 레인보우 테이블과 Salt의 삽입)
+- A는 B에게 원본, 해쉬값, 알고리즘을 보낸다.
+- B는 원본에 알고리즘을 적용해서 해쉬값 도출. A에게서 받은 해쉬와 도출해낸 해쉬를 비교.
+- 원본이 네트워크 상에서 변경되지 않았음을 검증한다.
+
+#### 서명
+
+- 비대칭키 사용
+- 개인키로 암호화하고 공개키로만 복호화할 수 있다.
+- 서명이란 원본을 개인키로 암호화한 해쉬값
+- A는 B에게 원본과 서명, 공개키를 보낸다.
+- B는 서명을 공개키로 복호화하고 그 값을 원본과 비교.
+- 공개키를 A가 제공했기 때문에 원본을 A가 작성한 것으로 신뢰할 수 있음.
+
+```java
+    @Test
+    void signature() throws Exception {
+        // 비대칭키 생성
+        KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
+        gen.initialize(2048);
+        KeyPair keyPair = gen.generateKeyPair();
+
+        // 개인키로 서명
+        byte[] digest = message.getBytes("UTF-8");
+        Signature sig = Signature.getInstance("SHA256WithRSA");
+        sig.initSign(keyPair.getPrivate());
+        sig.update(digest);
+        byte[] signed = sig.sign();
+
+        // 공개키로 검증
+        sig.initVerify(keyPair.getPublic());
+        sig.update(digest);
+
+        boolean verified = sig.verify(signed);
+
+        assertEquals(verified, true);
+    }
+```
+
+![alt text](<../images/스크린샷 2024-03-08 오후 4.38.59.png>)
+
+```java
+@Test
+void rsa() throws Exception {
+String algorithm = "RSA";
+
+    // 키페어 생성
+    KeyPairGenerator gen = KeyPairGenerator.getInstance(algorithm);
+    gen.initialize(1024, new SecureRandom());
+    KeyPair keyPair = gen.generateKeyPair();
+
+    // 공개키로 encrypt
+    Cipher cipher = Cipher.getInstance(algorithm);
+    cipher.init(Cipher.ENCRYPT_MODE, keyPair.getPublic());
+    byte[] encrypted = cipher.doFinal(message.getBytes());
+
+    // encode
+    byte[] encoded = Base64.getEncoder().encode(encrypted);
+
+    // 검증 시작
+
+    Cipher cipher2 = Cipher.getInstance(algorithm);
+    // decode
+    byte[] decoded = Base64.getDecoder().decode(encoded);
+    // decode 결과 확인
+    assertArrayEquals(encrypted, decoded);
+
+    // 개인키로 decrypt
+    cipher.init(Cipher.DECRYPT_MODE, keyPair.getPrivate());
+    byte[] decrypted = cipher.doFinal(decoded);
+    String decryptedMessage = new String(decrypted);
+    // decrypt 결과 확인
+    assertArrayEquals(message.getBytes(), decrypted);
+
+}
+
+```
+
+### JWT
+
+구조
+
+- Header
+  - 토큰유형(JWT), 서명 알고리즘 지정
+- Paylaod
+  - 토큰에 포함할 내용(claims)
+- Signature
+  - 헤더와 페이로드를 인코딩한 후 서명한다.
+
+```js
+HMAC_SHA256(
+  secret,
+  base64urlEncoding(header) + '.' + base64urlEncoding(payload)
+);
+```
+
+JWT = Base64(header).Base64(payload).Base64(signature)!!
+
+### JWK
+
+암호화 키를 저장하는 방식으로 인가서버에서 발행하는 JWT 토큰의 암호화 및 서명에 필요한 암호화 키의 다양한 정보를 담은 JSON 객체 표준입니다. `jwtSetUri` 정보를 설정하면 인가 서버로부터 JWK 형태의 정보를 다운로드할 수 있습니다.
+OAuth2에서 인가서버는 `/.well-known/openid-configuration`에서 `jwks_uri`를 공개한다.
+
+```java
+    @Test
+    void jwk() throws JOSEException {
+        // 비대칭키
+        RSAKey rsaKey = new RSAKeyGenerator(2048)
+            .keyID("rsa-kid")
+            .keyUse(KeyUse.SIGNATURE)
+            .keyOperations(Set.of(KeyOperation.SIGN))
+            .algorithm(JWSAlgorithm.RS512)
+            .generate();
+
+        // 대칭키
+        OctetSequenceKey octetSecretKey = new OctetSequenceKeyGenerator(256)
+            .keyID("secret-kid")
+            .keyUse(KeyUse.SIGNATURE)
+            .keyOperations(Set.of(KeyOperation.SIGN)  )
+            .algorithm(JWSAlgorithm.HS384)
+            .generate();
+
+        // 2개의 키를 가지고 JWK Set 생성
+        JWKSet jwkSet = new JWKSet(List.of(rsaKey, octetSecretKey));
+
+        // key set에서 원하는 키 선택
+        JWKSource<SecurityContext> jwkSource = ((jwkSelector, context) -> jwkSelector.select(jwkSet));
+        JWKSelector rsaSelector = new JWKSelector(new Builder().keyID("rsa-kid").build());
+        List<JWK> jwks = jwkSource.get(rsaSelector, null);
+        JWK jwk = jwks.getFirst();
+
+        assertEquals("rsa-kid", jwk.getKeyID());
+    }
+```
+
+### spring security oauth2 resource server 라이브러리를 이용하여 jwt 검증하기
+
+기본 `SavedRequestAwareAuthenticationSuccessHandler`를 커스터마이징 했던 `CustomOAuth2AuthenticationSuccessHandler` 클래스에서 인가 서버로부터 발급받은 `idtoken` 을 그대로 클라이언트로 넘겨주도록 했습니다.
+
+```java
+public class CustomOAuth2AuthenticationSuccessHandler extends
+    SavedRequestAwareAuthenticationSuccessHandler {
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+        Authentication authentication) throws ServletException, IOException {
+
+        this.setAlwaysUseDefaultTargetUrl(true);
+        this.setDefaultTargetUrl("http://localhost:3000");
+        Cookie token = new Cookie("TOKEN", "1234");
+//        token.setHttpOnly(true);
+        token.setSecure(false);
+        token.setPath("/");
+//        response.addCookie(token);
+
+        // response header 추가
+        // 인증을 위해 Bearer 토큰을 요청 시 첨부하라고 클라이언트에게 알려줌
+        response.addHeader("Authentication", "Bearer " + ((DefaultOidcUser) authentication.getPrincipal()).getIdToken().getTokenValue());
+
+        super.onAuthenticationSuccess(request, response, authentication);
+    }
+}
+```
+
+Oidc 인증이므로 `Principal` 인터페이스는 `DefaultOidcUser`로 구체화되었습니다.
+![alt text](<../images/스크린샷 2024-03-08 오후 10.40.09.png>)
+
+리소스 서버가 인가 서버가 발급한 jwt를 검증하기 위해서는 공개키가 필요합니다. @Configuration 클래스에 JWTDecoder 빈을 추가합니다.
+
+```java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+    // ...
+
+    // 리소스 서버 사용하여 api 요청 시 jwt 토큰을 검증하도록 함
+    http
+        .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
+
+    return http.build();
+}
+
+@Bean
+JwtDecoder jwtDecoder() {
+    return JwtDecoders.fromIssuerLocation("http://localhost:3333/realms/master");
+}
+```
+
+`jwks_uri`엔드포인트에서 제공하는 공개키 정보. n 과 e 속성이 공개키를 구성한다.
+![alt text](<../images/스크린샷 2024-03-08 오후 10.51.52.png>)
+
+OAuth2 사양에 따라서 인가 서버는 메타데이터를 `{}.well-known/{}` 엔드포인트에 공개하고 있습니다. 저는 스프링에 인가 서버를 가리키는 `issuer` 주소만 제공해주면 메타데이터를 뽑아오고 `jwks_uri` 속성을 조회하여 jwk set을 받아와 JwtDecoder 빈을 생성합니다.
+
+#### 인증 흐름
+
+- 사용자가 OAuth2 로그인 성공하면
+- SuccessHandler에서 인가서버로부터 받은 jwt을 그대로 전달해줌 (Response의 Authentication 헤더를 통해)
+- 매 요청마다 스프링 리소소 서버는 공개키로 토큰 검증
+
+스프링 리소스 서버에서 검증은 `BearerTokenAuthenticationFilter`에서 일어난다.
+https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/index.html
+
+```java
+    @Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+		String token;
+		try {
+			token = this.bearerTokenResolver.resolve(request);
+		}
+        // ...
+
+        // 필터에서 Bearer Token을 검증해서 Security Context를 생성하는 것을 확인할 수 있다.
+		BearerTokenAuthenticationToken authenticationRequest = new BearerTokenAuthenticationToken(token);
+		authenticationRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
+
+		try {
+			AuthenticationManager authenticationManager = this.authenticationManagerResolver.resolve(request);
+			Authentication authenticationResult = authenticationManager.authenticate(authenticationRequest);
+			SecurityContext context = this.securityContextHolderStrategy.createEmptyContext();
+			context.setAuthentication(authenticationResult);
+			this.securityContextHolderStrategy.setContext(context);
+			this.securityContextRepository.saveContext(context, request,
+            // ...
+			filterChain.doFilter(request, response);
+		}
+		catch (AuthenticationException failed) {
+			this.securityContextHolderStrategy.clearContext();
+			this.logger.trace("Failed to process authentication request", failed);
+			this.authenticationFailureHandler.onAuthenticationFailure(request, response, failed);
+		}
+	}
+```
+
+SuccessHandler에서 전달한 토큰이 Response Header 에 담겨 전달되고
+![alt text](<../images/스크린샷 2024-03-08 오후 11.12.51.png>)
+
+이를 postman을 이용해서 Request Header에 담아 전달했을 때 200 status 확인할 수 있습니다.
+![alt text](<../images/스크린샷 2024-03-08 오후 11.11.12.png>)

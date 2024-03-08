@@ -459,3 +459,122 @@ SuccessHandler에서 전달한 토큰이 Response Header 에 담겨 전달되고
 
 이를 postman을 이용해서 Request Header에 담아 전달했을 때 200 status 확인할 수 있습니다.
 ![alt text](<../images/스크린샷 2024-03-08 오후 11.11.12.png>)
+
+## Nextjs 앱에서 토큰을 어떻게 관리하는가
+
+### OAuth2 인증 시작하고 토큰 받기
+
+`<a>` 태그로 oauth2 인증 엔드포인트로 사용자롤 보냅니다.
+
+```ts
+// app/login/page.tsx
+export default function Page() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div className="w-72 rounded-md border-solid border-2 border-gray-400 flex-col items-center justify-center">
+        <div className="py-3 text-center">
+          <p className="font-bold">login</p>
+        </div>
+        <div className="py-3 text-center">
+          <a href="http://localhost:8080/oauth2/authorization/keycloak">
+            keycloak
+          </a>
+        </div>
+      </div>
+    </main>
+  );
+}
+```
+
+인증이 완료되면 스프링 시큐리티에 설정한 대로 프론트 페이지로 리다이렉트됩니다.
+![alt text](<../images/스크린샷 2024-03-09 오전 4.32.02.png>)
+제가 첨부한 쿠키가 브라우저에 저장되어 있는 것을 확인할 수 있습니다.
+
+### 토큰을 첨부하여 API 요청하기
+
+```ts
+// app/lib/action.ts
+'use server';
+
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+
+const SERVER_URL = 'http://localhost:8080';
+
+export async function getUser() {
+  const cookieStore = cookies();
+
+  if (!cookieStore.get('tkn')) {
+    redirect('/login');
+  }
+
+  return await fetch(`${SERVER_URL}/user`, {
+    headers: {
+      Authorization: `Bearer ${cookieStore.get('tkn')?.value}`,
+    },
+  })
+    .then((res) => {
+      if (`${res.status}`.startsWith('4'))
+        throw new Error('인증에 실패했습니다.');
+
+      if (!res.ok) throw new Error(`${res.status} status! 확인필요!`);
+
+      return res.json();
+    })
+    .catch((err) => ({ err: true, message: err.message }));
+}
+```
+
+`/user` 핸들러는 간단히 Authentication 객체를 리턴합니다.
+
+```java
+@RestController
+@RequiredArgsConstructor
+@Slf4j
+public class UserController {
+
+    @GetMapping(value = "/user", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Authentication user(Authentication authentication) {
+        log.info("{}", authentication);
+        return authentication;
+    }
+}
+```
+
+nextjs에서 제공하는 `cookies` 함수로 쿠키 정보를 가져올 수 있습니다. 쿠키는 악용될 가능성이 크기 때문에 `HttpOnly` 옵션을 사용해서 자바스크립트에서는 접근이 불가능하도록 하는 것이 일반적입니다. 브라우저 콘솔에서 쿠키에 접근하려고 `document.cookies`를 조회해도 HttpOnly 옵션이 걸려있는 쿠키는 확인할 수가 없습니다.
+![alt text](<../images/스크린샷 2024-03-09 오전 4.39.50.png>)
+
+그런데 nextjs는 서버 사이드 렌더링을 위한 라이브러리로서 사용자와 상호작용해야 하는 `Client Component` 외에는 서버에서 자바스크립트 코드를 실행하기 때문에 쿠키를 조작해도 안전하다고 볼 수 있습니다. 주의할 것은 Server Component 에서는 쿠키를 조회할 수만 있고 수정하는 것은 불가능합니다.
+
+Server Component를 렌더링하는 방식에는 `Streaming`이 있습니다. 서버에서 모든 렌더링을 마친 뒤에 브라우저로 보내주는게 아니라 chunk로 나뉘어진 컴포넌트들을 완성되는 대로 병렬적으로 보내주는 것입니다.
+https://nextjs.org/docs/app/api-reference/functions/cookies#cookiessetname-value-options
+Nextjs 공식 문서에서 Http가 스트리밍이 시작된 뒤에는 쿠키를 수정하지 못 하도록 막고 있기 때문에 쿠키를 수정하고 삭제하는 건 `Server Action`과 `Route Handler`만 가능하다고 명시하고 있습니다. Server Component 에서 import 한 Server Action 함수를 사용하면 간단히 쿠키를 가져오고 수정도 할 수 있겠네요.
+
+```ts
+// app/user/page.tsx
+import { getUser } from '@/app/lib/actions';
+
+export default async function Page() {
+  const userData = await getUser();
+  // console.log(userData);
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div className="w-72 px-3 rounded-md border-solid border-2 border-gray-400 flex-col items-center justify-center">
+        <div className="py-3 text-center">
+          <p className="font-bold">user</p>
+        </div>
+        <div className="py-3 text-center break-words">
+          {userData?.err
+            ? userData.message
+            : `token: ${userData.principal.tokenValue}`}
+        </div>
+      </div>
+    </main>
+  );
+}
+```
+
+![alt text](<../images/스크린샷 2024-03-09 오전 5.14.17.png>)
+토큰이 비어있을 때는 `/user`에서 권한이 제한되지만
+![alt text](<../images/스크린샷 2024-03-09 오전 5.15.23.png>)
+다시 인증을 받고 요청했을 때는 유저 정보를 출력하는 것을 확인했습니다.

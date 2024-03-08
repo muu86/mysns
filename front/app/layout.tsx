@@ -1,8 +1,5 @@
-import type { Metadata } from 'next';
-import { inter, nanumPenScript } from '@/app/ui/fonts';
 import { nanumGothic } from '@/app/ui/fonts';
 import './globals.css';
-import { AuthProvider } from './lib/AuthContext';
 
 export default function RootLayout({
   children,
@@ -11,11 +8,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${nanumGothic.className}`}>
-        <main className="flex min-h-screen flex-col items-center justify-between p-24">
-          {children}
-        </main>
-      </body>
+      <body className={`${nanumGothic.className}`}>{children}</body>
     </html>
   );
 }

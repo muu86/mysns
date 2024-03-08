@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
@@ -19,9 +20,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-public class OAuth2LoginSecurityConfig {
+public class SecurityConfig {
 
-    private final OidcUserService customOidcUserService;
+    private final OidcUserService customOidcUserPersistenceService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -29,12 +30,13 @@ public class OAuth2LoginSecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()));
         http
             .authorizeHttpRequests(requests -> requests.anyRequest().authenticated());
-//        http
-//            .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http
+            .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
+                SessionCreationPolicy.STATELESS));
         http
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
-                    .oidcUserService(customOidcUserService))
+                    .oidcUserService(customOidcUserPersistenceService))
                 .successHandler(this.customOAuth2AuthenticationSuccessHandler())
             );
 

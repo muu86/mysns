@@ -16,15 +16,18 @@ public class CustomOAuth2AuthenticationSuccessHandler extends
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
         Authentication authentication) throws ServletException, IOException {
 
+        String jwt = ((DefaultOidcUser) authentication.getPrincipal()).getIdToken()
+            .getTokenValue();
+
         this.setAlwaysUseDefaultTargetUrl(true);
         this.setDefaultTargetUrl("http://localhost:3000");
-        Cookie token = new Cookie("TOKEN", "1234");
-//        token.setHttpOnly(true);
+        Cookie token = new Cookie("tkn", jwt);
+        token.setHttpOnly(true);
         token.setSecure(false);
         token.setPath("/");
-//        response.addCookie(token);
+        response.addCookie(token);
 
-        response.addHeader("Authentication", "Bearer " + ((DefaultOidcUser) authentication.getPrincipal()).getIdToken().getTokenValue());
+        response.addHeader("Authentication", "Bearer " + jwt);
 
         super.onAuthenticationSuccess(request, response, authentication);
     }

@@ -29,14 +29,6 @@
 
 ## Spring OAuth2 설정
 
-### 커스터마이징 관련해서 기억할만한 패턴
-
-아래 스프링 공식문서를 살펴보던 중 기존 서비스의 행동을 그대로 위임하면서 추가적인 행동만 확장하고 싶을 때 lambda식을 리턴하고 기존 서비스는 지역변수에 가두는 것을 확인했습니다. 마치 자바스크립트의 클로저처럼 작성된 코드가 신기해서 기록해놓습니다. 자바스크립트의 클로저는 내부 데이터를 조작할 수도 있으므로 동작 방식은 다르지만 객체를 생성하는 패턴은 같습니다.  
-저는 커스터마이징한 클래스에서 다른 Bean이 필요해 질 것 같아서(UserEntity를 Repository에 저장하기 위한 Service 컴포넌트를 Autowired 하는 등) 이 패턴은 사용하지 않았습니다. 디폴트 클래스를 상속하고 `super.xxx()`를 호출하여 기존 행위를 위임했습니다.
-
-https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.html#oauth2login-advanced-map-authorities
-![alt text](<../images/스크린샷 2024-03-08 오전 2.55.43.png>)
-
 ## OAuth2 인증된 사용자를 데이터베이스 저장하기
 
 인가 서버에서 인증한 사용자를 데이터베이스에 저장하려고 합니다. oauth2 인증 단계 중 어느 단계에 유저를 저장하는 게 좋을 지를 고민했습니다. 인증이 성공한 경우 작동하는 `AuthenticationSuccessHandler`에서 하는 것도 가능하지만 클래스의 원래 역할이 무엇인지를 생각했을 때 `OAuth2UserService` 에서 처리하는 게 좋다고 판단했습니다.
@@ -48,7 +40,8 @@ https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.h
 - OpenID Connect 방식일 때는 `OidcUserService`가 사용되고 ID Token이 JWT로 발급되기 때문에 토큰에서 바로 스코프를 조회할 수 있습니다.
 
 OpenID Connect 방식이라도 일정 조건에 해당하면 스코프를 다시 확인하기 위해 userInfo 엔드포인트에 request할 수도 있습니다.
-OidcUserService 클래스의 소스코드 중
+
+`OidcUserService 클래스의 소스코드 중`
 ![alt text](<../images/스크린샷 2024-03-08 오전 3.29.18.png>)
 
 #### AuthenticationSuccessHandler의 역할
@@ -183,13 +176,13 @@ public class CustomOAuth2AuthenticationSuccessHandler extends
 }
 ```
 
-defaultTargetUrl을 true로 설정하면 defaultTargetUrl로 리다이렉트됩니다. SavedRequest의 url은 사용되지 않습니다.
-그리고 **defaultTargetUrl**을 nextjs 앱의 주소로 설정했습니다.
+**alwaysUseDefaultTargetUrl**을 true로 설정하면 항상 defaultTargetUrl로 리다이렉트됩니다. SavedRequest은 사용되지 않습니다.
+**defaultTargetUrl**을 프론트 주소로 설정했습니다.
 
-부모 클래스 **SavedRequestAwareAuthenticationSuccessHandler** 문서
+부모 클래스 **SavedRequestAwareAuthenticationSuccessHandler**
 ![alt text](<../images/스크린샷 2024-03-07 오후 11.55.06.png>)
 
-또 한가지 포인트는 **RequestCache**를 이용해서 이전 request를 저장해 놓는 것입니다.
+**RequestCache**에 저장해 놓은 이전 request를 조회하는 것을 확인할 수 있습니다.
 내부 처리 과정은 이런 것 같습니다.(아직 자세히 뒤져보지는 않았습니다...)
 
 - 사용자가 보안 엔드포인트로 요청을 날리는데 인증된 사용자가 아니라 ExceptionalTranslationFilter가 작동한다.
@@ -199,7 +192,8 @@ defaultTargetUrl을 true로 설정하면 defaultTargetUrl로 리다이렉트됩�
 
 저는 이걸 활용해서 프론트에서 사용자가 원래 요청했던 페이지로 리다이렉트시키려고 했지만 일단은 실패했습니다.
 프론트의 html은 OAuth2 인증을 시작하기 위해서 스프링의 기본 엔드포인트인 `/oauth2/authoriztion/{registrationid}` 로 바로 이동합니다.  
-아마도 인증이 실패해서 **ExceptionalTranslationFilter**를 거쳐서 oauth2가 시작된게 아니라 바로 oauth2 인증을 시작했기 때문에 request를 저장하지 않은 것으로 보입니다.
+아마도 인증이 실패하고 **ExceptionalTranslationFilter**를 거쳐서 `/oauth2/authoriztion/{registrationid}`로 온게 아니라 바로 oauth2 인증을 시작했기 때문에 request를 저장하지 않은 것으로 보입니다. request를 저장하는 로직은 ExceptionalTranslationFilter에 있을 것 같네요.
+
 ![alt text](<../images/스크린샷 2024-03-08 오전 12.08.59.png>)
 당연히 `<a>`태그가 아니라 브라우저에 주소를 바로 입력했을 때도 request를 save하지 않습니다.
 ![alt text](<../images/스크린샷 2024-03-08 오전 12.20.04.png>)
@@ -411,7 +405,7 @@ JwtDecoder jwtDecoder() {
 `jwks_uri`엔드포인트에서 제공하는 공개키 정보. n 과 e 속성이 공개키를 구성한다.
 ![alt text](<../images/스크린샷 2024-03-08 오후 10.51.52.png>)
 
-OAuth2 사양에 따라서 인가 서버는 메타데이터를 `{}.well-known/{}` 엔드포인트에 공개하고 있습니다. 저는 스프링에 인가 서버를 가리키는 `issuer` 주소만 제공해주면 메타데이터를 뽑아오고 `jwks_uri` 속성을 조회하여 jwk set을 받아와 JwtDecoder 빈을 생성합니다.
+OAuth2 사양에 따라서 인가 서버는 메타데이터를 `{issuer}/.well-known/{}` 엔드포인트에 공개하고 있습니다. 스프링 리소스 서버는 인가 서버를 가리키는 `issuer` 주소만 제공해주면 알아서 메타데이터를 뽑아오고 `jwks_uri` 속성을 조회하여 jwk set을 받아와 JwtDecoder 빈을 생성합니다.
 
 #### 인증 흐름
 
@@ -460,7 +454,7 @@ SuccessHandler에서 전달한 토큰이 Response Header 에 담겨 전달되고
 이를 postman을 이용해서 Request Header에 담아 전달했을 때 200 status 확인할 수 있습니다.
 ![alt text](<../images/스크린샷 2024-03-08 오후 11.11.12.png>)
 
-## Nextjs 앱에서 토큰을 어떻게 관리하는가
+## Nextjs 앱에서 토큰 다루기
 
 ### OAuth2 인증 시작하고 토큰 받기
 
@@ -486,9 +480,8 @@ export default function Page() {
 }
 ```
 
-인증이 완료되면 스프링 시큐리티에 설정한 대로 프론트 페이지로 리다이렉트됩니다.
+인증이 완료되면 스프링 시큐리티에서 설정한 대로 프론트 페이지로 리다이렉트되고 제가 첨부한 쿠키가 브라우저에 저장된 것을 확인할 수 있습니다.
 ![alt text](<../images/스크린샷 2024-03-09 오전 4.32.02.png>)
-제가 첨부한 쿠키가 브라우저에 저장되어 있는 것을 확인할 수 있습니다.
 
 ### 토큰을 첨부하여 API 요청하기
 
@@ -578,3 +571,17 @@ export default async function Page() {
 토큰이 비어있을 때는 `/user`에서 권한이 제한되지만
 ![alt text](<../images/스크린샷 2024-03-09 오전 5.15.23.png>)
 다시 인증을 받고 요청했을 때는 유저 정보를 출력하는 것을 확인했습니다.
+
+### JWT를 쿠키에 저장하는게 안전한가
+
+JWT는 자체로 사용자에 대한 정보를 포함하고 있고 누구나 payload에 담겨있는 정보를 확인할 수 있습니다. 그래서 민감한 정보는 jwt에 담지 않는데 그래도 안정성이 떨어지는 쿠키에 어쨌든 누구나 확인 가능한 개인정보가 보관되고 있는 것은 불안합니다. 검색해보니 역시 쿠키에 저장하는 것은 추천하지 않고 session storage 혹은 local storage에 저장하는 것을 추천하고 있었습니다. 아마도 `Next Auth` 같은 전문적인 라이브러리는 쿠키보다는 더 안전한 방법으로 처리를 할 것 같습니다. 처음부터 스프링 시큐리티의 기능만 가지고 OAuth2를 실습하는게 목적이었기 때문에 이게 한계인 것 같습니다. Nextjs에서 브라우저 session, local storage를 다루는 기능이나 라이브러리가 있다면 미들웨어에서 매 요청마다 토큰을 확인하고 토큰이 있으면 세션에 저장한 뒤 바로 쿠키를 삭제하는 방법도 있는데 잠깐이나마 쿠키에 저장되어야 하기 때문에 확실한 해결법은 아니네요.
+
+## 기타
+
+### 커스터마이징 관련해서 기억할만한 패턴
+
+아래 스프링 공식문서를 살펴보던 중 기존 서비스의 행동을 그대로 위임하면서 추가적인 행동만 확장하고 싶을 때 lambda식을 리턴하고 기존 서비스는 지역변수에 가두는 것을 확인했습니다. 마치 자바스크립트의 클로저처럼 작성된 코드가 신기해서 기록해놓습니다. 자바스크립트의 클로저는 내부 데이터를 조작할 수도 있으므로 동작 방식은 다르지만 객체를 생성하는 패턴은 같습니다.  
+저는 커스터마이징한 클래스에서 다른 Bean이 필요해 질 것 같아서(UserEntity를 Repository에 저장하기 위한 Service 컴포넌트를 Autowired 하는 등) 이 패턴은 사용하지 않았습니다. 디폴트 클래스를 상속하고 `super.xxx()`를 호출하여 기존 행위를 위임했습니다.
+
+https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.html#oauth2login-advanced-map-authorities
+![alt text](<../images/스크린샷 2024-03-08 오전 2.55.43.png>)

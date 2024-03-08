@@ -20,9 +20,9 @@ public class User {
 
     private String username;
 
-    private String firstName;
+    private String first;
 
-    private String lastName;
+    private String last;
 
     private String email;
 
@@ -36,8 +36,8 @@ public class User {
         Boolean oauth2, String provider) {
         User user = new User();
         user.username = username;
-        user.firstName = firstName;
-        user.lastName = lastName;
+        user.first = firstName;
+        user.last = lastName;
         user.email = email;
         user.oauth2 = oauth2;
         user.provider = provider;

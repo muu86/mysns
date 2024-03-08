@@ -2,16 +2,11 @@ package com.mj.mysns.config;
 
 import com.mj.mysns.domain.user.model.dto.UserDto;
 import com.mj.mysns.domain.user.service.UserService;
-import java.util.HashSet;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +15,8 @@ import org.springframework.stereotype.Component;
 // https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.html#oauth2login-advanced-map-authorities-oauth2userservice
 @Component
 @RequiredArgsConstructor
-public class CustomOidcUserService extends OidcUserService {
+@Slf4j
+public class CustomOidcUserPersistenceService extends OidcUserService {
 
     private final UserService userService;
 
@@ -28,15 +24,10 @@ public class CustomOidcUserService extends OidcUserService {
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
 
-        UserDto userDto = UserDto.builder()
-            .userName(oidcUser.getClaim("name"))
-            .firstName(oidcUser.getGivenName())
-            .lastName(oidcUser.getFamilyName())
-            .email(oidcUser.getEmail())
-            .oauth2(true)
-            .provider("keycloak")
-            .build();
-        UserDto saved = userService.saveUser(userDto);
+        if (shouldSaveUser(oidcUser)) {
+            UserDto saved = saveUser(oidcUser);
+            log.info("인증된 사용자를 데이터베이스에 저장했습니다! {}", saved.getEmail());
+        }
 
 //        OAuth2AccessToken accessToken = userRequest.getAccessToken();
 //        Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
@@ -49,5 +40,28 @@ public class CustomOidcUserService extends OidcUserService {
 //        oidcUser = new DefaultOidcUser(mappedAuthorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
 
         return oidcUser;
+    }
+
+    private boolean shouldSaveUser(OidcUser oidcUser) {
+        UserDto found = userService
+            .findUserByFullNameAndEmail(UserDto.builder()
+                .first(oidcUser.getGivenName())
+                .last(oidcUser.getFamilyName())
+                .email(oidcUser.getEmail())
+                    .build());
+        return found == null;
+    }
+
+    private UserDto saveUser(OidcUser oidcUser) {
+        UserDto userDto = UserDto.builder()
+            .username(oidcUser.getClaim("name"))
+            .first(oidcUser.getGivenName())
+            .last(oidcUser.getFamilyName())
+            .email(oidcUser.getEmail())
+            .oauth2(true)
+            .provider("keycloak")
+            .build();
+
+        return userService.saveUser(userDto);
     }
 }

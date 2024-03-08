@@ -5,5 +5,7 @@ import com.mj.mysns.domain.user.model.entity.User;
 
 public interface UserService {
 
+    UserDto findUserByFullNameAndEmail(UserDto userDto);
+
     UserDto saveUser(UserDto userDto);
 }

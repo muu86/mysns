@@ -98,5 +98,5 @@ export default async function Page() {
 #### Suspense Boundaries 설정 시 생각해야 할 것
 
 - loading.tsx로 전체 페이지를 스트리밍할 수 있으나 가장 느리게 처리되는 하나의 요청때문에 전체 요청이 블로킹되는 단점이 있다.
-- 그렇다고 각각의 모든 컴포넌트에 Suspense를 입히게 되면 컴포넌트 하나가 렌더가 완료될 때마다 브라우저에서 popping하기 때문에 사용자 경험에 좋지 않을 수 있다.
+- 그렇다고 각각의 모든 컴포넌트에 Suspense를 입히게 되면 컴포넌트 하나가 렌더가 완료될 때마다 브라우저에서 popping한다.
 - 애플리케이션 마다 사용자의 경험을 고려하여 Suspense Boundaries를 설정해야 한다.

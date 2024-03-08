@@ -7,11 +7,11 @@ import lombok.Value;
 @Value
 public class UserDto {
 
-    String userName;
+    String username;
 
-    String firstName;
+    String first;
 
-    String lastName;
+    String last;
 
     String email;
 

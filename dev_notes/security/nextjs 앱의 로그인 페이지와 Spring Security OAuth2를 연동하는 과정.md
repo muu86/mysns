@@ -392,7 +392,7 @@ Oidc 인증이므로 `Principal` 인터페이스는 `DefaultOidcUser`로 구체�
 ```java
 @Bean
 public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
+    http.
     // ...
 
     // 리소스 서버 사용하여 api 요청 시 jwt 토큰을 검증하도록 함

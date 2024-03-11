@@ -24,13 +24,13 @@ public record CreatePostRequest(
 스프링이 해당 객체에 json 데이터를 매핑하기 전 검증을 수행하고 오류 발생 시 MethodArgumentNotValidException을 던진다.
 
 ```java
-    public ResponseEntity<CreatePostResponse> createPost(
+    public ResponseEntity<CreatePostResponse> createPostDto(
         
         @Valid @RequestBody CreatePostRequest createPostRequest
     
     ) {
         PostDto newPost = new PostDto(createPostRequest.content());
-        PostDto savedPost = postService.createPost(newPost);
+        PostDto savedPost = postService.createPostDto(newPost);
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(new CreatePostResponse("success"));

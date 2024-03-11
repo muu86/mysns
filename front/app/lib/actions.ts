@@ -28,3 +28,12 @@ export async function getUser() {
     .catch((err) => ({ err: true, message: err.message }));
   // .catch((err) => redirect('/login'));
 }
+
+export async function createPostDto(id: FormData, formData: FormData) {
+  console.log('server action called!');
+
+  console.log(id);
+  console.log(formData);
+
+  // redirect('/');
+}

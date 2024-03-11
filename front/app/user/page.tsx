@@ -1,6 +1,6 @@
 import { getUser } from '@/app/lib/actions';
 
-export default async function Page() {
+export default async function User() {
   const userData = await getUser();
   // console.log(userData);
   return (

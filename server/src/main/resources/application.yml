@@ -6,8 +6,9 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: update # You can change this according to your needs (e.g., create-drop, validate)
+      ddl-auto: create # You can change this according to your needs (e.g., create-drop, validate)
     show-sql: true # Set to true to see SQL statements in the console
+    open-in-view: false
 
   security:
     oauth2:
@@ -26,3 +27,10 @@ spring:
         provider:
           keycloak:
             issuerUri: http://localhost:3333/realms/master
+#
+#  servlet:
+#    multipart:
+#      enabled: false
+
+logging.level.io.awspring.cloud: debug
+#logging.level.org.springframework: debug

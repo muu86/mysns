@@ -1,7 +1,9 @@
 package com.mj.mysns.config;
 
 import com.mj.mysns.domain.user.model.dto.UserDto;
+import com.mj.mysns.domain.user.model.entity.User;
 import com.mj.mysns.domain.user.service.UserService;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -24,10 +26,15 @@ public class CustomOidcUserPersistenceService extends OidcUserService {
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
 
-        if (shouldSaveUser(oidcUser)) {
-            UserDto saved = saveUser(oidcUser);
-            log.info("인증된 사용자를 데이터베이스에 저장했습니다! {}", saved.getEmail());
+        Optional<User> found = userService.findUserByEmail(UserDto.builder()
+                .email(oidcUser.getEmail())
+                .build());
+        if (found.isEmpty()) {
+            saveUser(oidcUser);
+            log.info("인증된 사용자를 데이터베이스에 저장했습니다! {}", oidcUser.getEmail());
         }
+
+        return oidcUser;
 
 //        OAuth2AccessToken accessToken = userRequest.getAccessToken();
 //        Set<GrantedAuthority> mappedAuthorities = new HashSet<>();
@@ -38,21 +45,9 @@ public class CustomOidcUserPersistenceService extends OidcUserService {
 //
 //        // 3) Create a copy of oidcUser but use the mappedAuthorities instead
 //        oidcUser = new DefaultOidcUser(mappedAuthorities, oidcUser.getIdToken(), oidcUser.getUserInfo());
-
-        return oidcUser;
     }
 
-    private boolean shouldSaveUser(OidcUser oidcUser) {
-        UserDto found = userService
-            .findUserByFullNameAndEmail(UserDto.builder()
-                .first(oidcUser.getGivenName())
-                .last(oidcUser.getFamilyName())
-                .email(oidcUser.getEmail())
-                    .build());
-        return found == null;
-    }
-
-    private UserDto saveUser(OidcUser oidcUser) {
+    private void saveUser(OidcUser oidcUser) {
         UserDto userDto = UserDto.builder()
             .username(oidcUser.getClaim("name"))
             .first(oidcUser.getGivenName())
@@ -62,6 +57,6 @@ public class CustomOidcUserPersistenceService extends OidcUserService {
             .provider("keycloak")
             .build();
 
-        return userService.saveUser(userDto);
+        userService.saveUser(userDto);
     }
 }

@@ -1,10 +1,9 @@
 package com.mj.mysns.domain.post.service;
 
-import com.mj.mysns.domain.post.model.dto.PostDto;
-import com.mj.mysns.domain.post.model.entity.Post;
+import com.mj.mysns.domain.post.model.dto.CreatePostDto;
 
 public interface PostService {
 
-    PostDto createPost(PostDto postDto);
+    void createPost(CreatePostDto createPostDto);
 
 }

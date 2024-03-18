@@ -1,4 +1,4 @@
-import { Inter, Nanum_Pen_Script } from 'next/font/google';
+import { Inter, Nanum_Pen_Script, Noto_Serif_KR } from 'next/font/google';
 import { Nanum_Gothic } from 'next/font/google';
 
 export const inter = Inter({ subsets: ['latin'] });
@@ -13,4 +13,9 @@ export const nanumPenScript = Nanum_Pen_Script({
   subsets: ['latin'],
   weight: ['400'],
   // preload: false,
+});
+
+export const notoSerifKorean = Noto_Serif_KR({
+  subsets: ['latin'],
+  weight: ['200', '300', '400', '500', '700'],
 });

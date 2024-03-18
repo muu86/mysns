@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createPostDto } from '../lib/actions';
+import { createPost } from '../lib/actions';
 
 export default function Test() {
   const [image, setImage] = useState();
@@ -10,15 +10,18 @@ export default function Test() {
     setImage(e.target.files[0]);
   };
 
-  const post = async () => {
-    const fd = new FormData();
-    fd.append('image', image);
-    console.log('성공?');
-    createPostDto(fd);
-  };
+  // const post = async () => {
+  //   const fd = new FormData();
+  //   fd.append('image', image);
+  //   console.log('성공?');
+  //   createPost(fd);
+  // };
+
+  const loc = getLocation();
+  console.log(loc);
 
   return (
-    <form action={createPostDto}>
+    <form action={createPost}>
       <input
         type="file"
         accept="image/**"
@@ -30,3 +33,10 @@ export default function Test() {
     </form>
   );
 }
+
+const getLocation = () => {
+  const nav = navigator.geolocation;
+  nav.getCurrentPosition((pos) => {
+    console.log({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+  });
+};

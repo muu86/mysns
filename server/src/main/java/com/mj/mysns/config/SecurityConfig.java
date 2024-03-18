@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
@@ -34,9 +33,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(requests -> requests
                 .requestMatchers("/posts").authenticated()
                 .anyRequest().permitAll());
-        http
-            .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
-                SessionCreationPolicy.STATELESS));
+//        http
+//            .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
+//                SessionCreationPolicy.STATELESS));
         http
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo
@@ -69,7 +68,7 @@ public class SecurityConfig {
 
     @Bean
     AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler() {
-        return new CustomOAuth2AuthenticationSuccessHandler();
+        return new CustomizedOAuth2AuthenticationSuccessHandler();
     }
 
 //    @Bean

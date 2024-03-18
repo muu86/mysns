@@ -1,10 +1,8 @@
 'use client';
 
+import { createPost } from '@/app/lib/actions';
+import { FingerPrintIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { ChangeEvent, useState } from 'react';
-import { createPostDto } from '@/app/lib/actions';
-// import { PlusCircleIcon } from '@heroicons/react/16/solid';
-// import { Plus } from '@heroicons/react/24/outline';
-import { PlusIcon } from '@heroicons/react/24/outline';
 import Preview from './preview-image';
 
 type ImageFile = {
@@ -13,6 +11,7 @@ type ImageFile = {
 };
 
 export default function CreatePostForm() {
+  const [content, setContent] = useState<string>('');
   const [imageFiles, setImageFiles] = useState<ImageFile[]>([]);
   const [selectedFileUrl, setSelectedFileUrl] = useState<string>('');
 
@@ -51,22 +50,34 @@ export default function CreatePostForm() {
     );
   };
 
-  const createPostWithFiles = (() => {
+  // const createPost = () => {
+  //   console.log(arguments);
+  //   const fd = new FormData();
+  //   imageFiles.forEach((f, i) => {
+  //     fd.append('files', f.file);
+  //   });
+  //   return createPostDto.bind(null, fd);
+  // })();
+
+  const preCreatePost = (formData: FormData) => {
     const fd = new FormData();
+    fd.append('content', content);
     imageFiles.forEach((f, i) => {
-      fd.append(`image_${i}`, f.file);
+      fd.append(`files`, f.file);
     });
-    return createPostDto.bind(null, fd);
-  })();
+    // fd.append('files', formData.getAll('files'));
+
+    createPost(fd);
+  };
 
   return (
     <div className="flex flex-col w-full py-4">
-      {/* <form action={createPostWithFiles}> */}
-      <form
+      <form action={preCreatePost}>
+        {/* <form
         action="http://localhost:8080/posts"
         encType="multipart/form-data"
         method="post"
-      >
+        > */}
         {/* 이미지, 미디어 파일 */}
         <div>
           {imageFiles && (
@@ -83,9 +94,10 @@ export default function CreatePostForm() {
               <input
                 className="hidden"
                 type="file"
-                accept="image/*"
+                accept="image/**"
                 multiple
-                // name="image"
+                name="files"
+                // name="files"
                 onChange={handleFileInput}
               />
               이미지 추가
@@ -98,6 +110,7 @@ export default function CreatePostForm() {
             <textarea
               name="content"
               className="w-full min-h-56 p-6 resize-none focus:outline-none"
+              onChange={(e) => setContent(e.target.value)}
             ></textarea>
           </div>
         </div>

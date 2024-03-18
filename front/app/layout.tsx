@@ -1,5 +1,6 @@
-import { nanumGothic } from '@/app/ui/fonts';
+import { nanumGothic, notoSerifKorean } from '@/app/ui/fonts';
 import './globals.css';
+import Sidebar from './sidebar';
 
 export default function RootLayout({
   children,
@@ -8,7 +9,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${nanumGothic.className}`}>{children}</body>
+      <body className={`${notoSerifKorean.className}`}>
+        <div className="w-full h-screen flex flex-col-reverse sm:flex-row">
+          <Sidebar />
+          {children}
+        </div>
+      </body>
     </html>
   );
 }

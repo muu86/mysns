@@ -1,35 +1,46 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/test
-    username: root
+#    url: jdbc:mysql://localhost:3306/test
+    url: jdbc:postgresql://localhost:5432/postgres
+#    username: root
+#    password: 1234
+    username: postgres
     password: 1234
-    driver-class-name: com.mysql.cj.jdbc.Driver
+#    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
+    show-sql: true
     hibernate:
-      ddl-auto: create # You can change this according to your needs (e.g., create-drop, validate)
-    show-sql: true # Set to true to see SQL statements in the console
+      ddl-auto: create
     open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+#        dialect: org.hibernate.spatial.dialect.mysql.MySQL8SpatialDialect
+  batch:
+    jdbc.initialize-schema: always
+    job.enabled: false
 
   security:
     oauth2:
       client:
         registration:
           keycloak:
-            clientId: oauth2-client-app
-            clientSecret: qcWhQDyT81IdRxHd1Q9QjQGz3PnpI41A
+            clientId: oauth2
+            clientSecret: dAjea8o8aFdte09SI9A9sSxRYF8WAmDn
             scope:
               - openid
               - profile
               - email
-#          google:
-#            clientId: 123
-#            clientSecret: 1233
+        #          google:
+        #            clientId: 123
+        #            clientSecret: 1233
         provider:
           keycloak:
             issuerUri: http://localhost:3333/realms/master
 #
-#  servlet:
-#    multipart:
+  servlet:
+    multipart:
+      max-file-size: 7MB
 #      enabled: false
 
 logging.level.io.awspring.cloud: debug

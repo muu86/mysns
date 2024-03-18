@@ -5,7 +5,7 @@ export default async function User() {
   // console.log(userData);
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="w-72 px-3 rounded-md border-solid border-2 border-gray-400 flex-col items-center justify-center">
+      {/* <div className="w-72 px-3 rounded-md border-solid border-2 border-gray-400 flex-col items-center justify-center">
         <div className="py-3 text-center">
           <p className="font-bold">user</p>
         </div>
@@ -14,7 +14,7 @@ export default async function User() {
             ? userData.message
             : `token: ${userData.principal.tokenValue}`}
         </div>
-      </div>
+      </div> */}
     </main>
   );
 }

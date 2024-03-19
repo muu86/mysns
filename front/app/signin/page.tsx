@@ -1,3 +1,7 @@
+'use client';
+
+import { signIn } from 'next-auth/react';
+
 export default function Login() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
@@ -6,9 +10,12 @@ export default function Login() {
           <p className="font-bold">login</p>
         </div>
         <div className="py-3 text-center">
-          <a href="http://localhost:8080/oauth2/authorization/keycloak">
+          {/* <a href="http://localhost:8080/oauth2/authorization/keycloak">
             keycloak
-          </a>
+          </a> */}
+          <button onClick={() => signIn('keycloak', { callbackUrl: '/start' })}>
+            Keycloak
+          </button>
         </div>
       </div>
     </main>

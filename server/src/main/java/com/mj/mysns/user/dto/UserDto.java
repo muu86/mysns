@@ -1,21 +1,22 @@
 package com.mj.mysns.user.dto;
 
 import lombok.Builder;
-import lombok.Value;
 
 @Builder
-@Value
-public class UserDto {
+public record UserDto(
+    String username,
 
-    String username;
+    String first,
 
-    String first;
+    String last,
 
-    String last;
+    String email,
 
-    String email;
+    Boolean emailVerified,
 
-    Boolean oauth2;
+    String issuer,
 
-    String provider;
+    String subject
+) {
+
 }

@@ -1,14 +1,10 @@
 package com.mj.mysns.batch;
 
-import com.mj.mysns.batch.address.LegalAddressProcessor;
-import com.mj.mysns.batch.address.LegalAddressReader;
-import com.mj.mysns.batch.address.LegalAddressWriter;
 import com.mj.mysns.batch.mockdata.MockPostProcessor;
 import com.mj.mysns.batch.mockdata.MockPostReader;
 import com.mj.mysns.batch.mockdata.MockPostWriter;
 import com.mj.mysns.batch.mockdata.MockUserReader;
 import com.mj.mysns.batch.mockdata.MockUserWriter;
-import com.mj.mysns.location.entity.LegalAddress;
 import com.mj.mysns.location.repository.AddressRepository;
 import com.mj.mysns.post.PostRepository;
 import com.mj.mysns.post.entity.Post;
@@ -36,6 +32,7 @@ public class MockDataBatchConfig {
     private final PlatformTransactionManager platformTransactionManager;
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final Step createLegalAddressStep;
     private final PostRepository postRepository;
 
     @Bean
@@ -51,38 +48,38 @@ public class MockDataBatchConfig {
     @Bean
     public Step createMockUserStep() {
         return new StepBuilder("createMockUserStep", jobRepository)
-            .<User, User>chunk(100, platformTransactionManager)
+            .<User, User>chunk(1, platformTransactionManager)
             .reader(mockUserReader())
             .writer(mockUserWriter())
             .allowStartIfComplete(true)
             .build();
     }
+//
+//    @Bean
+//    public ItemReader<LegalAddress> legalAddressItemReader() {
+//        return new LegalAddressReader(Path.of("/Users/mj/work/sns/data", "seoul_emd_geometry.csv"));
+//    }
+//
+//    @Bean
+//    public ItemProcessor<LegalAddress, LegalAddress> legalAddressItemProcessor() {
+//        return new LegalAddressProcessor();
+//    }
+//
+//    @Bean
+//    public ItemWriter<LegalAddress> legalAddressItemWriter() {
+//        return new LegalAddressWriter(addressRepository);
+//    }
 
-    @Bean
-    public ItemReader<LegalAddress> legalAddressItemReader() {
-        return new LegalAddressReader(Path.of("/Users/mj/work/sns/data", "seoul_emd_geometry.csv"));
-    }
-
-    @Bean
-    public ItemProcessor<LegalAddress, LegalAddress> legalAddressItemProcessor() {
-        return new LegalAddressProcessor();
-    }
-
-    @Bean
-    public ItemWriter<LegalAddress> legalAddressItemWriter() {
-        return new LegalAddressWriter(addressRepository);
-    }
-
-    @Bean
-    public Step createLegalAddressStep() {
-        return new StepBuilder("createLegalAddressDataStep", jobRepository)
-            .<LegalAddress, LegalAddress>chunk(100, platformTransactionManager)
-            .reader(legalAddressItemReader())
-            .processor(legalAddressItemProcessor())
-            .writer(legalAddressItemWriter())
-            .allowStartIfComplete(true)
-            .build();
-    }
+//    @Bean
+//    public Step createLegalAddressStep() {
+//        return new StepBuilder("createLegalAddressDataStep", jobRepository)
+//            .<LegalAddress, LegalAddress>chunk(100, platformTransactionManager)
+//            .reader(legalAddressItemReader())
+//            .processor(legalAddressItemProcessor())
+//            .writer(legalAddressItemWriter())
+//            .allowStartIfComplete(true)
+//            .build();
+//    }
 
     @Bean
     public ItemReader<String> mockPostReader() {
@@ -114,7 +111,7 @@ public class MockDataBatchConfig {
     public Job createAllJob() {
         return new JobBuilder("createAllJob", jobRepository)
             .start(createMockUserStep())
-            .next(createLegalAddressStep())
+            .next(createLegalAddressStep)
             .next(createMockPostStep())
             .build();
     }

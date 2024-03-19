@@ -39,6 +39,7 @@ public class LegalAddress {
     private String sunwi;
 
     @Column(nullable = false, columnDefinition = "geometry(Geometry, 4326)")
+//    @Column(nullable = false, columnDefinition = "GEOMETRY SRID 4326")
     private Geometry location;
 
 //    private Polygon polygon;

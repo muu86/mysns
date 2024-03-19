@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getFeeds } from '../lib/actions';
-import { Post } from '../lib/definitions';
+import { getFeeds } from '@/app/lib/actions/feed';
+import { Post } from '@/app/lib/definitions';
 import { ScrollTrigger } from './ScrollTrigger';
 import { Feed } from './feed';
 

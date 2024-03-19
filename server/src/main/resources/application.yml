@@ -1,11 +1,12 @@
 spring:
   datasource:
-#    url: jdbc:mysql://localhost:3306/test
     url: jdbc:postgresql://localhost:5432/postgres
+    password: 1234
+    username: postgres
+
+#    url: jdbc:mysql://localhost:3306/test
 #    username: root
 #    password: 1234
-    username: postgres
-    password: 1234
 #    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true

@@ -2,7 +2,6 @@ package com.mj.mysns.config;
 
 import com.mj.mysns.user.UserService;
 import com.mj.mysns.user.dto.UserDto;
-import com.mj.mysns.user.entity.User;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +25,10 @@ public class CustomizedOidcUserPersistenceService extends OidcUserService {
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
         OidcUser oidcUser = super.loadUser(userRequest);
 
-        Optional<User> found = userService.findUserByEmail(UserDto.builder()
-                .email(oidcUser.getEmail())
-                .build());
+        String issuer = userRequest.getIdToken().getIssuer().toString();
+        String subject = userRequest.getIdToken().getSubject();
+
+        Optional<UserDto> found = userService.findByIssuerAndSubject(UserDto.builder().issuer(issuer).subject(subject).build());
         if (found.isEmpty()) {
             saveUser(oidcUser);
             log.info("인증된 사용자를 데이터베이스에 저장했습니다! {}", oidcUser.getEmail());
@@ -49,12 +49,11 @@ public class CustomizedOidcUserPersistenceService extends OidcUserService {
 
     private void saveUser(OidcUser oidcUser) {
         UserDto userDto = UserDto.builder()
-            .username(oidcUser.getPreferredUsername())
             .first(oidcUser.getGivenName())
             .last(oidcUser.getFamilyName())
             .email(oidcUser.getEmail())
-            .oauth2(true)
-            .provider("keycloak")
+            .issuer(oidcUser.getIssuer().toString())
+            .subject(oidcUser.getSubject())
             .build();
 
         userService.saveUser(userDto);

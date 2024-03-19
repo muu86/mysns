@@ -20,4 +20,7 @@ public class LocationService {
         return addressRepository.findLegalAddressNear(latitude, longitude, page, offset);
     }
 
+    public List<LegalAddress> getLegalAddresses() {
+        return addressRepository.findAll();
+    }
 }

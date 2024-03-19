@@ -1,11 +1,10 @@
 package com.mj.mysns.location.api;
 
 import com.mj.mysns.location.LocationService;
+import com.mj.mysns.location.api.payload.LegalAddressResult;
 import com.mj.mysns.location.entity.LegalAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,20 +19,39 @@ public class LocationController {
 
     private final LocationService locationService;
 
-    @GetMapping(path = "/near")
-    public ResponseEntity<List<Map<String, String>>> getNearest(
+    @GetMapping("/legal")
+    public ResponseEntity<List<LegalAddressResult>> getLegalAddresses() {
+        List<LegalAddress> legalAddresses = locationService.getLegalAddresses();
+        List<LegalAddressResult> results = legalAddresses.stream()
+            .map(a -> LegalAddressResult.builder()
+                .code(a.getCode())
+                .sido(a.getSido())
+                .gungu(a.getGungu())
+                .eupmyundong(a.getEupmyundong())
+                .li(a.getLi())
+                .build())
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping(path = "/legal/near")
+    public ResponseEntity<List<LegalAddressResult>> getLegalAddressesNear(
         @RequestParam("latitude") String latitude,
         @RequestParam("longitude") String longitude,
         @RequestParam(value = "page", defaultValue = "5") int page,
         @RequestParam(value = "offset", defaultValue = "0") int offset) {
 
         List<LegalAddress> nearestAddress = locationService.getAddressNear(latitude, longitude, page, offset);
-        List<Map<String, String>> results = new ArrayList<>();
-        for (LegalAddress address : nearestAddress) {
-            Map<String, String> result = new HashMap<>();
-            result.put("name", address.getEupmyundong());
-            results.add(result);
-        }
+        List<LegalAddressResult> results = nearestAddress.stream()
+            .map(a -> LegalAddressResult.builder()
+                .code(a.getCode())
+                .sido(a.getSido())
+                .gungu(a.getGungu())
+                .eupmyundong(a.getEupmyundong())
+                .li(a.getLi())
+                .build())
+            .collect(Collectors.toList());
         return ResponseEntity.ok(results);
     }
+
 }

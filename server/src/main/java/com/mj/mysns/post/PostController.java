@@ -9,8 +9,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 
 @RestController
+@RequestMapping("/post")
 public class PostController {
 
     private final PostService postService;
@@ -38,7 +42,12 @@ public class PostController {
 //        return ResponseEntity.status(200).body(authentication);
 //    }
 
-    @PostMapping("/posts")
+    @GetMapping
+    public String getPost(@AuthenticationPrincipal OidcUser user) {
+        return "hi";
+    }
+
+    @PostMapping
     public ResponseEntity<String> createPost(
         @RegisteredOAuth2AuthorizedClient("keycloak") OAuth2AuthorizedClient authorizedClient,
         @AuthenticationPrincipal JwtAuthenticationToken token,

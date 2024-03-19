@@ -32,7 +32,7 @@ public class DefaultPostService implements PostService {
     public void createPost(CreatePostDto createPostDto) {
 
         // user 정보
-        Optional<User> found = userService.findUserByAuthentication(null);
+        Optional<User> found = userService.findByAuthentication(null);
         if (found.isEmpty()) {
             log.info("user 를 찾을 수 없습니다.");
             return;

@@ -1,7 +1,7 @@
 'use client';
 
-import { createPost } from '@/app/lib/actions';
-import { FingerPrintIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { createPost } from '@/app/lib/actions/post';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { ChangeEvent, useState } from 'react';
 import Preview from './preview-image';
 

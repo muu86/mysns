@@ -1,9 +1,10 @@
-package com.mj.mysns.user;
+package com.mj.mysns.api;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.mj.mysns.user.UserService;
 import com.mj.mysns.user.dto.UserDto;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class UserControllerTest {
 
-    @MockBean UserService userService;
+    @MockBean
+    UserService userService;
 
     @Autowired
     private WebTestClient client;

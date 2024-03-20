@@ -1,4 +1,4 @@
-package com.mj.mysns.location.api;
+package com.mj.mysns.api;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.verify;

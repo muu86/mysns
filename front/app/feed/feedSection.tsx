@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getFeeds } from '@/app/lib/actions/feed';
-import { Post } from '@/app/lib/definitions';
+import { Post } from '@/app/types/definitions';
 import { ScrollTrigger } from './ScrollTrigger';
 import { Feed } from './feed';
 

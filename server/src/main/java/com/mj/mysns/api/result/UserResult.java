@@ -1,4 +1,4 @@
-package com.mj.mysns.user.payload;
+package com.mj.mysns.api.result;
 
 import lombok.Builder;
 

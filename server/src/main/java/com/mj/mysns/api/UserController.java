@@ -1,8 +1,10 @@
-package com.mj.mysns.user;
+package com.mj.mysns.api;
 
+import com.mj.mysns.api.payload.CreateUserPayload;
+import com.mj.mysns.user.UserService;
 import com.mj.mysns.user.dto.UserDto;
-import com.mj.mysns.user.payload.CreateUserPayload;
-import com.mj.mysns.user.payload.UserResult;
+import jakarta.validation.Valid;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,8 +43,8 @@ public class UserController {
 //        return ResponseEntity.ok(UserResult.builder().username(user.username()).build());
 //    }
 
-    @GetMapping
-    public ResponseEntity<UserResult> getUserByIssuerAndSubject(
+    @GetMapping("/exists")
+    public ResponseEntity<Map<String, String>> checkUserExistsByIssuerAndSubject(
         @RequestParam("issuer") String issuer,
         @RequestParam("subject") String subject) {
 
@@ -57,11 +58,11 @@ public class UserController {
         }
 
         UserDto user = byUsername.get();
-        return ResponseEntity.ok(UserResult.builder().username(user.username()).build());
+        return ResponseEntity.ok(Map.of("message", "success", "username", byUsername.get().username()));
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> createUser(@RequestBody CreateUserPayload payload) {
+    @PostMapping
+    public ResponseEntity<Map<String, String>> createUser(@Valid CreateUserPayload payload) {
         UserDto userDto = UserDto.builder()
             .subject(payload.sub())
             .issuer(payload.iss())
@@ -69,9 +70,13 @@ public class UserController {
             .last(payload.last())
             .email(payload.email())
             .emailVerified(payload.emailVerified())
+            .username(payload.username())
+            .babyAge(payload.babyAge())
+            .legalAddressCode(payload.legalAddressCode())
             .build();
 
         userService.saveUser(userDto);
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity.ok(Map.of("message", "success"));
     }
 }

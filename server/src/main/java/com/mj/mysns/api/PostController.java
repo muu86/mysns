@@ -1,5 +1,6 @@
-package com.mj.mysns.post;
+package com.mj.mysns.api;
 
+import com.mj.mysns.post.PostService;
 import com.mj.mysns.post.dto.CreatePostDto;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

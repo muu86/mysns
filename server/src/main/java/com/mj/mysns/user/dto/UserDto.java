@@ -4,7 +4,9 @@ import lombok.Builder;
 
 @Builder
 public record UserDto(
-    String username,
+    String issuer,
+
+    String subject,
 
     String first,
 
@@ -14,9 +16,12 @@ public record UserDto(
 
     Boolean emailVerified,
 
-    String issuer,
+    String username,
 
-    String subject
+    Integer babyAge,
+
+    String legalAddressCode
+
 ) {
 
 }

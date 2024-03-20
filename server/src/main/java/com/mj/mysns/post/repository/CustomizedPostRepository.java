@@ -1,4 +1,4 @@
-package com.mj.mysns.post;
+package com.mj.mysns.post.repository;
 
 import com.mj.mysns.post.entity.Post;
 import java.util.List;

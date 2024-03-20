@@ -1,6 +1,6 @@
 import { getUser } from '@/app/lib/actions/user';
 import NextAuth from 'next-auth';
-import type { NextAuthConfig } from 'next-auth';
+import type { NextAuthConfig, Profile } from 'next-auth';
 import keycloak from 'next-auth/providers/keycloak';
 
 export const {
@@ -32,8 +32,7 @@ export const {
 
       return true;
     },
-    async jwt({ token, user, account, profile }) {
-      console.log(profile);
+    async jwt({ token, user, account, profile, trigger, session }) {
       if (account) {
         token.provider = account?.provider;
         token.accessToken = account?.access_token;
@@ -44,14 +43,17 @@ export const {
       if (user) {
         token.isExists = user.isExists;
       }
+      if (trigger === 'update' && session.isExists === true) {
+        token.isExists = true;
+      }
       return token;
     },
     async session({ session, token, user }) {
-      session.isExists = token.isExists;
-      session.accessToken = token.accessToken;
-      session.refreshToken = token.refreshToken;
-      session.idToken = token.idToken;
-      session.profile = token.profile;
+      session.isExists = token.isExists as boolean;
+      session.accessToken = token.accessToken as string;
+      session.refreshToken = token.refreshToken as string;
+      session.idToken = token.idToken as string;
+      session.profile = token.profile as Profile;
       return session;
     },
   },

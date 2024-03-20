@@ -1,5 +1,6 @@
-package com.mj.mysns.feed;
+package com.mj.mysns.api;
 
+import com.mj.mysns.feed.FeedService;
 import com.mj.mysns.post.entity.Post;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

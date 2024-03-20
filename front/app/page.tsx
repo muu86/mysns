@@ -1,17 +1,20 @@
-import { cookies } from 'next/headers';
+import { WifiIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
-  const cookiesStore = cookies();
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="w-72 px-3 rounded-md border-solid border-2 border-gray-400 flex-col items-center justify-center">
-        <div className="py-3 text-center">
-          <p className="font-bold">home</p>
+    <main className="w-full h-full grow overflow-scroll">
+      <div className="flex flex-col justify-center items-center">
+        <div className="flex flex-row justify-center items-center my-20">
+          <WifiIcon className="w-16 h-16" />
+          <div className="mx-8">
+            <h1 className="text-4xl">오지엄마</h1>
+          </div>
         </div>
-        <div className="py-3 text-center break-words">
-          <p className="font-bold">현재 쿠키 정보</p>
-          <p className="py-3">{cookiesStore.toString()}</p>
+        <div>
+          <p>
+            아이 키우는 집이 흔치 않은 지역에 사는 엄마들을 위해 만들었습니다.
+          </p>
+          <p>위치 기반으로 가까운 지역에 사는 엄마들을 찾을 수 있어요.</p>
         </div>
       </div>
     </main>

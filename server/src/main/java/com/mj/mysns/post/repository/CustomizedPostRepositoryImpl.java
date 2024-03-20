@@ -1,4 +1,4 @@
-package com.mj.mysns.post;
+package com.mj.mysns.post.repository;
 
 import static com.mj.mysns.location.entity.QLegalAddress.legalAddress;
 import static com.mj.mysns.post.entity.QPost.post;

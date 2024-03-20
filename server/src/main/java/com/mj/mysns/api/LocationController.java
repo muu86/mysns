@@ -1,7 +1,7 @@
-package com.mj.mysns.location.api;
+package com.mj.mysns.api;
 
+import com.mj.mysns.api.result.LegalAddressResult;
 import com.mj.mysns.location.LocationService;
-import com.mj.mysns.location.api.payload.LegalAddressResult;
 import com.mj.mysns.location.entity.LegalAddress;
 import java.util.List;
 import java.util.stream.Collectors;

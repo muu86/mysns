@@ -1,21 +1,25 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import StartForm from './start-form';
 import { redirect } from 'next/navigation';
+import { getLegalAddresses } from '@/app/lib/actions/location';
 
 export default async function Start() {
   const session = await auth();
-  // console.log(session);
+  if (!session) {
+    redirect('/signin');
+  }
 
   if (session.isExists) {
-    console.log('이미 가입된 user 를 redirect 합니다.');
     redirect('/');
   }
+
+  const address = await getLegalAddresses();
 
   return (
     <main className="w-full h-full flex flex-col items-center">
       <div className="sm:w-72">
         <div className="text-center"></div>
-        <StartForm session={session} />
+        <StartForm session={session} address={address} />
       </div>
     </main>
   );

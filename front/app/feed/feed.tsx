@@ -1,6 +1,6 @@
 'use client';
 
-import { Post } from '@/app/lib/definitions';
+import { Post } from '@/app/types/definitions';
 import { notoSerifKorean } from '@/app/ui/fonts';
 import clsx from 'clsx';
 import Image from 'next/image';

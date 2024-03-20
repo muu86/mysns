@@ -1,12 +1,16 @@
 package com.mj.mysns.user.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,7 +29,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(nullable = true)
+    @Column(unique = true)
     @Setter
     private String username;
 
@@ -41,9 +45,14 @@ public class User {
 
     private String subject;
 
+    private Integer babyAge;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
+    private List<UserLegalAddress> userAddress;
+
     @Builder
     public User(String username, String first, String last, String email, Boolean emailVerified, String issuer,
-        String subject) {
+        String subject, Integer babyAge, List<UserLegalAddress> userAddress) {
         this.username = username;
         this.first = first;
         this.last = last;
@@ -51,5 +60,7 @@ public class User {
         this.emailVerified = emailVerified;
         this.issuer = issuer;
         this.subject = subject;
+        this.babyAge = babyAge;
+        this.userAddress = userAddress == null ? new ArrayList<UserLegalAddress>() : userAddress;
     }
 }

@@ -1,25 +1,15 @@
 'use server';
 
+import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import { Profile } from 'next-auth';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 const SERVER_URL = 'http://localhost:8080';
 
-export async function checkNicknameDuplicated(nickname: string) {
-  const response = await fetch(
-    `${SERVER_URL}/user/check-nickname?nickname=${nickname}`,
-    {
-      method: 'GET',
-      cache: 'force-cache',
-    }
-  );
-  const data = await response.json();
-  return null;
-}
-
 export async function getUser(profile: Profile) {
   const response = await fetch(
-    `${SERVER_URL}/user?issuer=${profile.iss}&subject=${profile.sub}`,
+    `${SERVER_URL}/user/exists?issuer=${profile.iss}&subject=${profile.sub}`,
     {
       method: 'GET',
       cache: 'force-cache',
@@ -32,49 +22,37 @@ export async function getUser(profile: Profile) {
   return user;
 }
 
-export async function createUser(formDate: FormData) {
-  if (!profile) return;
+export async function createUser(formData: FormData) {
+  const session = await auth();
+  if (!session) return;
 
-  const createUser = {
-    sub: profile.sub,
-    iss: profile.iss,
-    first: profile.given_name,
-    last: profile.family_name,
-    email: profile.email,
-    emailVerified: profile.email_verified,
-  };
+  formData.append('sub', session.profile.sub as string);
+  formData.append('iss', session.profile.iss as string);
+  formData.append('first', session.profile.given_name as string);
+  formData.append('last', session.profile.family_name as string);
+  formData.append('email', session.profile.email as string);
+  formData.append('emailVerified', session.profile.email_verified ? '1' : '0');
 
-  const response = await fetch(`${SERVER_URL}/user`, {
+  const response = await fetch(`${process.env.SERVER_BASE_URL}/user`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(createUser),
+    body: formData,
   });
+  const result = await response.json();
 
-  if (response.status === 400) {
-    return {
-      err: true,
-      errMessage: response.json,
-    };
+  console.log(result);
+
+  switch (response.status) {
+    case 400: {
+      return {
+        error: true,
+        body: result,
+      };
+    }
+    case 500:
+      redirect('/');
+      break;
+    case 409:
+    default:
+      redirect('/');
   }
 }
-
-// export async function getUser() {
-//   const cookieStore = cookies();
-
-//   return await fetch(`${SERVER_URL}/user`, {
-//     headers: {
-//       Authorization: `Bearer ${cookieStore.get('tkn')?.value}`,
-//     },
-//   })
-//     .then((res) => {
-//       if (res.status === 401 || res.status === 403)
-//         throw new Error('인증에 실패했습니다');
-
-//       if (!res.ok) throw new Error(`${res.status} status! 확인필요!`);
-
-//       return res.json();
-//     })
-//     .catch((err) => ({ err: true, message: err.message }));
-// }

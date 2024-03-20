@@ -7,6 +7,7 @@ import com.mj.mysns.post.entity.FileLocation;
 import com.mj.mysns.post.entity.FileLocation.FileLocationType;
 import com.mj.mysns.post.entity.Post;
 import com.mj.mysns.post.entity.PostFile;
+import com.mj.mysns.post.repository.PostRepository;
 import com.mj.mysns.user.UserRepository;
 import com.mj.mysns.user.entity.User;
 import org.junit.jupiter.api.AfterAll;

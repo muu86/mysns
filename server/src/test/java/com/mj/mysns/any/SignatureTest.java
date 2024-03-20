@@ -1,4 +1,4 @@
-package com.mj.mysns.jwt;
+package com.mj.mysns.any;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -1,4 +1,4 @@
-import { nanumGothic, notoSerifKorean } from '@/app/ui/fonts';
+import { notoSerifKorean } from '@/app/ui/fonts';
 import './globals.css';
 import Sidebar from './sidebar';
 

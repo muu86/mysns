@@ -1,7 +1,7 @@
 package com.mj.mysns.batch.mockdata;
 
-import com.mj.mysns.post.PostRepository;
 import com.mj.mysns.post.entity.Post;
+import com.mj.mysns.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;

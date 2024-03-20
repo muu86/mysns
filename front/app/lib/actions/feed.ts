@@ -1,7 +1,7 @@
 'use server';
 
-import { GetFeedsResponse } from '@/app/lib/res-definition';
-import { Post } from '@/app/lib/definitions';
+import { GetFeedsResponse } from '@/app/types/res-definition';
+import { Post } from '@/app/types/definitions';
 import { calculateDate } from '@/app/lib/functions';
 
 const SERVER_URL = 'http://localhost:8080';

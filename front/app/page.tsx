@@ -1,6 +1,9 @@
 import { WifiIcon } from '@heroicons/react/24/outline';
+import { auth } from './api/auth/[...nextauth]/auth';
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth();
+  console.log(session);
   return (
     <main className="w-full h-full grow overflow-scroll">
       <div className="flex flex-col justify-center items-center">

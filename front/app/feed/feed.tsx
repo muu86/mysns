@@ -4,14 +4,11 @@ import { Post } from '@/app/types/definitions';
 import { notoSerifKorean } from '@/app/ui/fonts';
 import clsx from 'clsx';
 import Image from 'next/image';
-import { useState } from 'react';
 
 const picsum = 'https://picsum.photos/1200?random=';
 
 export const Feed = ({ post }: { post: Post }) => {
   const { content, legalAddress, createdAt } = post;
-  const [profileLoaded, setProfileLoaded] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <article className="w-full h-full py-2 px-1 md:w-[600px] mx-auto border-b-2 border-dashed grid grid-cols-12 grid-rows-12 border-neutral-200 rounded-md">

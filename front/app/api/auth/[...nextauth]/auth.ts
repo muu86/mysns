@@ -14,7 +14,7 @@ export const {
   ],
   secret: process.env.AUTH_SECRET,
   pages: {
-    signIn: '/signin',
+    signIn: '/login',
   },
   session: {
     strategy: 'jwt',
@@ -23,11 +23,9 @@ export const {
     async signIn({ user, account, profile }) {
       if (!profile) return false;
 
-      const exisingUser = await getUser(profile!);
-      user.isExists = false;
-
-      if (exisingUser) {
-        user.isExists = true;
+      const found = await getUser(profile!);
+      if (found) {
+        user.username = found.username;
       }
 
       return true;
@@ -41,15 +39,17 @@ export const {
         token.profile = profile;
       }
       if (user) {
-        token.isExists = user.isExists;
+        token.username = user.username;
       }
-      if (trigger === 'update' && session.isExists === true) {
-        token.isExists = true;
+      if (trigger === 'update') {
+        token.username = session.username;
       }
       return token;
     },
-    async session({ session, token, user }) {
-      session.isExists = token.isExists as boolean;
+    async session({ session, token }) {
+      if (token.username) {
+        session.user.username = token.username as string;
+      }
       session.accessToken = token.accessToken as string;
       session.refreshToken = token.refreshToken as string;
       session.idToken = token.idToken as string;

@@ -34,7 +34,6 @@ public class S3FileRepository implements FileRepository {
                     .contentType(file.getContentType())
                     .contentLength(file.getSize())
 //                    .metadata(Map.of("Original-Filename", originalFilename))
-
                 ,
                 RequestBody.fromByteBuffer(ByteBuffer.wrap(file.getBytes())));
 

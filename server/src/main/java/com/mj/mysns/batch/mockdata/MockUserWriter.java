@@ -1,6 +1,6 @@
 package com.mj.mysns.batch.mockdata;
 
-import com.mj.mysns.user.UserRepository;
+import com.mj.mysns.user.repository.UserRepository;
 import com.mj.mysns.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.Chunk;

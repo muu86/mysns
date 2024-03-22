@@ -7,29 +7,26 @@ import com.mj.mysns.location.entity.LegalAddress;
 import com.mj.mysns.location.repository.AddressRepository;
 import com.mj.mysns.user.dto.UserDto;
 import com.mj.mysns.user.entity.User;
-import com.mj.mysns.user.entity.UserLegalAddress;
+import com.mj.mysns.user.entity.UserAddress;
+import com.mj.mysns.user.repository.UserRepository;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DefaultUserService implements UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
 
     @Override
-    public Optional<User> findByEmail(UserDto userDto) {
-        return userRepository.findByEmail(userDto.email());
-    }
-
-    @Override
-    public Optional<UserDto> findByIssuerAndSubject(UserDto userDto) {
+    public Optional<UserDto> checkUserByIssuerAndSubject(UserDto userDto) {
         Optional<User> found = userRepository.findByIssuerAndSubject(userDto.issuer(),
             userDto.subject());
 
@@ -51,8 +48,8 @@ public class DefaultUserService implements UserService {
     @Override
     public Optional<User> findByAuthentication(Authentication authentication) {
         Jwt token = (Jwt) authentication.getPrincipal();;
-        Optional<User> found = userRepository.findByEmail(token.getClaimAsString("email"));
-        return found;
+        Optional<User> user = userRepository.findByEmail(token.getClaimAsString("email"));
+        return user;
     }
 
     @Override
@@ -68,8 +65,8 @@ public class DefaultUserService implements UserService {
             throw new DuplicatedUsernameException();
         }
 
-        Optional<LegalAddress> byCode = addressRepository.findByCode(userDto.legalAddressCode());
-        if (byCode.isEmpty()) {
+        Optional<LegalAddress> foundAddress = addressRepository.findByCode(userDto.legalAddressCode());
+        if (foundAddress.isEmpty()) {
             throw new AddressNotFoundException("주소를 찾을 수 없습니다.");
         }
 
@@ -83,25 +80,24 @@ public class DefaultUserService implements UserService {
             .subject(userDto.subject())
             .babyAge(userDto.babyAge())
             .build();
-        toSave.getUserAddress().add(new UserLegalAddress(toSave, byCode.get()));
+        toSave.addUserAddress(foundAddress.get());
 
         User save = userRepository.save(toSave);
-        log.info("user: {} 저장, id: {}", save.getEmail(), save.getUserId());
+        log.info("user: {} 저장, id: {}", save.getEmail(), save.getId());
     }
 
     @Override
-    public Optional<UserDto> findByUsername(String username) {
-        Optional<User> byUsername = userRepository.findByUsername(username);
-        if (byUsername.isEmpty()) {
-            return Optional.empty();
-        }
-
-        User found = byUsername.get();
-        return Optional.of(UserDto.builder()
-            .username(found.getUsername())
-            .first(found.getFirst())
-            .last(found.getLast())
-            .email(found.getEmail())
-            .build());
+    public Optional<UserDto> getUserProfileByUsername(UserDto userDto) {
+        Assert.notNull(userDto, "userDto 가 null 입니다.");
+        return userRepository.findUserProfile(userDto)
+            .map(found -> UserDto.builder()
+                .username(found.getUsername())
+                .babyAge(found.getBabyAge())
+                .content(found.getContent())
+                .userAddresses(
+                    found.getUserAddresses().stream().map(
+                        UserAddress::getLegalAddress).toList())
+                .userFiles(found.getUserFiles())
+                .build());
     }
 }

@@ -2,6 +2,7 @@ import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import StartForm from './start-form';
 import { redirect } from 'next/navigation';
 import { getLegalAddresses } from '@/app/lib/actions/location';
+import { SessionProvider } from 'next-auth/react';
 
 export default async function Start() {
   const session = await auth();
@@ -9,18 +10,20 @@ export default async function Start() {
     redirect('/signin');
   }
 
-  if (session.isExists) {
+  if (session.user?.username) {
     redirect('/');
   }
 
   const address = await getLegalAddresses();
 
   return (
-    <main className="w-full h-full flex flex-col items-center">
-      <div className="sm:w-72">
-        <div className="text-center"></div>
-        <StartForm session={session} address={address} />
-      </div>
-    </main>
+    <SessionProvider session={session}>
+      <main className="w-full h-full flex flex-col items-center">
+        <div className="sm:w-72">
+          <div className="text-center"></div>
+          <StartForm session={session} address={address} />
+        </div>
+      </main>
+    </SessionProvider>
   );
 }

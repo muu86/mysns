@@ -6,9 +6,6 @@ import { Post } from '@/app/types/definitions';
 import { ScrollTrigger } from './ScrollTrigger';
 import { Feed } from './feed';
 
-const picsum = 'https://picsum.photos/300/random=';
-const lorem = `https://baconipsum.com/api/?type=all-meat&sentences=1&paras=30`;
-
 export default function FeedSection() {
   const [coords, setCoords] = useState<GeolocationCoordinates | null>(null);
   const [posts, setPosts] = useState<Post[] | null>(null);

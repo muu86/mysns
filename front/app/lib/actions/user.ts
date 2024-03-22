@@ -2,7 +2,6 @@
 
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import { Profile } from 'next-auth';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 const SERVER_URL = 'http://localhost:8080';
@@ -12,7 +11,7 @@ export async function getUser(profile: Profile) {
     `${SERVER_URL}/user/exists?issuer=${profile.iss}&subject=${profile.sub}`,
     {
       method: 'GET',
-      cache: 'force-cache',
+      cache: 'no-store',
     }
   );
   if (response.status === 404) {
@@ -33,6 +32,8 @@ export async function createUser(formData: FormData) {
   formData.append('email', session.profile.email as string);
   formData.append('emailVerified', session.profile.email_verified ? '1' : '0');
 
+  console.log(session);
+
   const response = await fetch(`${process.env.SERVER_BASE_URL}/user`, {
     method: 'POST',
     body: formData,
@@ -50,9 +51,10 @@ export async function createUser(formData: FormData) {
     }
     case 500:
       redirect('/');
-      break;
     case 409:
     default:
-      redirect('/');
+      return {
+        message: 'success',
+      };
   }
 }

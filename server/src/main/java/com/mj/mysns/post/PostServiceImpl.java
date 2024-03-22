@@ -1,10 +1,9 @@
 package com.mj.mysns.post;
 
 import com.mj.mysns.common.file.FileService;
-import com.mj.mysns.location.entity.LegalAddress;
 import com.mj.mysns.post.dto.CreatePostDto;
-import com.mj.mysns.post.entity.FileLocation;
-import com.mj.mysns.post.entity.FileLocation.FileLocationType;
+import com.mj.mysns.common.file.FileLocation;
+import com.mj.mysns.common.file.FileLocation.FileLocationType;
 import com.mj.mysns.post.entity.Post;
 import com.mj.mysns.post.entity.PostFile;
 import com.mj.mysns.post.repository.PostRepository;
@@ -21,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 
 @Service
-public class DefaultPostService implements PostService {
+public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
 
@@ -77,14 +76,6 @@ public class DefaultPostService implements PostService {
         // 일단 content 만 수정
         post.setContent(createPostDto.content());
         postRepository.save(post);
-    }
-
-    @Override
-    public List<Post> getPosts(LegalAddress address) {
-
-        List<Post> posts = postRepository.findPostByCode(address.getCode());
-
-        return posts;
     }
 
     @Override

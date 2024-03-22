@@ -2,11 +2,10 @@ import { User, Session, Profile } from 'next-auth';
 
 declare module 'next-auth' {
   interface User {
-    isExists: boolean;
+    username?: string;
   }
 
   interface Session {
-    isExists: boolean;
     accessToken: string;
     refreshToken: string;
     idToken: string;

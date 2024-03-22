@@ -3,7 +3,7 @@ package com.mj.mysns.batch.mockdata;
 import com.mj.mysns.location.entity.LegalAddress;
 import com.mj.mysns.location.repository.AddressRepository;
 import com.mj.mysns.post.entity.Post;
-import com.mj.mysns.user.UserRepository;
+import com.mj.mysns.user.repository.UserRepository;
 import com.mj.mysns.user.entity.User;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;

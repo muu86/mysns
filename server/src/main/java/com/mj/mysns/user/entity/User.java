@@ -1,5 +1,7 @@
 package com.mj.mysns.user.entity;
 
+import com.mj.mysns.common.file.FileLocation;
+import com.mj.mysns.location.entity.LegalAddress;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,12 +13,14 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 
 @Entity
@@ -27,7 +31,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long id;
 
     @Column(unique = true)
     @Setter
@@ -47,12 +51,18 @@ public class User {
 
     private Integer babyAge;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST)
-    private List<UserLegalAddress> userAddress;
+    private String content;
+
+    @OneToMany(mappedBy = "user", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    private List<UserFile> userFiles;
+
+    @OneToMany(mappedBy = "user", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    private List<UserAddress> userAddresses;
 
     @Builder
     public User(String username, String first, String last, String email, Boolean emailVerified, String issuer,
-        String subject, Integer babyAge, List<UserLegalAddress> userAddress) {
+        String subject, Integer babyAge, String content, List<UserFile> userFiles, List<UserAddress> userAddresses) {
+
         this.username = username;
         this.first = first;
         this.last = last;
@@ -61,6 +71,18 @@ public class User {
         this.issuer = issuer;
         this.subject = subject;
         this.babyAge = babyAge;
-        this.userAddress = userAddress == null ? new ArrayList<UserLegalAddress>() : userAddress;
+        this.content = content;
+        this.userFiles = Optional.ofNullable(userFiles).orElse(new ArrayList<>());
+        this.userAddresses = Optional.ofNullable(userAddresses).orElse(new ArrayList<>());
+    }
+
+    public void addUserAddress(LegalAddress address) {
+        UserAddress userAddress = new UserAddress(this, address);
+        this.userAddresses.add(userAddress);
+    }
+
+    public void addUserFile(FileLocation fileLocation, Boolean active) {
+        UserFile userFile = new UserFile(this, fileLocation, active);
+        this.userFiles.add(userFile);
     }
 }

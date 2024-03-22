@@ -4,6 +4,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
@@ -43,8 +44,8 @@ public class SecurityConfig {
                 .successHandler(this.customOAuth2AuthenticationSuccessHandler())
             );
 
-//        http
-//            .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
+        http
+            .oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()));
 
         return http.build();
     }

@@ -1,4 +1,8 @@
 spring:
+
+  messages:
+    basename: messages,errors
+
   datasource:
     url: jdbc:postgresql://localhost:5432/postgres
     password: 1234
@@ -11,7 +15,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     open-in-view: false
     properties:
       hibernate:

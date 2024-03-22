@@ -8,7 +8,7 @@ import com.mj.mysns.batch.mockdata.MockUserWriter;
 import com.mj.mysns.location.repository.AddressRepository;
 import com.mj.mysns.post.entity.Post;
 import com.mj.mysns.post.repository.PostRepository;
-import com.mj.mysns.user.UserRepository;
+import com.mj.mysns.user.repository.UserRepository;
 import com.mj.mysns.user.entity.User;
 import java.nio.file.Path;
 import lombok.RequiredArgsConstructor;

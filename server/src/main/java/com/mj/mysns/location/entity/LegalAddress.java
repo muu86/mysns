@@ -1,5 +1,6 @@
 package com.mj.mysns.location.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -39,10 +40,9 @@ public class LegalAddress {
     private String sunwi;
 
     @Column(nullable = false, columnDefinition = "geometry(Geometry, 4326)")
+    @JsonIgnore
 //    @Column(nullable = false, columnDefinition = "GEOMETRY SRID 4326")
     private Geometry location;
-
-//    private Polygon polygon;
 
     private LocalDateTime createdAt;
 

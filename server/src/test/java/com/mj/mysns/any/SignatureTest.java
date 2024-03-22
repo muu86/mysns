@@ -17,6 +17,7 @@ import com.nimbusds.jose.jwk.gen.OctetSequenceKeyGenerator;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import java.net.URL;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
@@ -28,6 +29,7 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 public class SignatureTest {
 
@@ -138,5 +140,9 @@ public class SignatureTest {
         JWK jwk = jwks.getFirst();
 
         assertEquals("rsa-kid", jwk.getKeyID());
+    }
+
+    @Test
+    void jwt() {
     }
 }

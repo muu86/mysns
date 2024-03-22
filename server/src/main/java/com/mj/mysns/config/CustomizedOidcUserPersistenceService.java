@@ -28,7 +28,7 @@ public class CustomizedOidcUserPersistenceService extends OidcUserService {
         String issuer = userRequest.getIdToken().getIssuer().toString();
         String subject = userRequest.getIdToken().getSubject();
 
-        Optional<UserDto> found = userService.findByIssuerAndSubject(UserDto.builder().issuer(issuer).subject(subject).build());
+        Optional<UserDto> found = userService.checkUserByIssuerAndSubject(UserDto.builder().issuer(issuer).subject(subject).build());
         if (found.isEmpty()) {
             saveUser(oidcUser);
             log.info("인증된 사용자를 데이터베이스에 저장했습니다! {}", oidcUser.getEmail());

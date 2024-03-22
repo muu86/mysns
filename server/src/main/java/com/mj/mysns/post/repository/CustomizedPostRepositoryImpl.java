@@ -34,7 +34,7 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
             .join(post.legalAddress, legalAddress)
             .where(legalAddress.code.eq(code))
             .limit(10)
-            .orderBy(post.postId.asc());
+            .orderBy(post.id.asc());
         List<Post> result = query.fetch();
         return result;
     }
@@ -46,9 +46,10 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 
         List<Post> posts = queryFactory
             .selectFrom(post)
+            .distinct()
             .leftJoin(post.files, postFile).fetchJoin()
-            .join(post.user, user).fetchJoin()
-            .join(post.legalAddress, legalAddress).fetchJoin()
+            .join(post.user, user)
+            .join(post.legalAddress, legalAddress)
             .orderBy(
                 stringTemplate(
                     "st_distancesphere({0}, {1})",

@@ -7,13 +7,11 @@ import org.springframework.security.core.Authentication;
 
 public interface UserService {
 
-    Optional<User> findByEmail(UserDto userDto);
-
-    Optional<UserDto> findByIssuerAndSubject(UserDto userDto);
+    Optional<UserDto> checkUserByIssuerAndSubject(UserDto userDto);
 
     Optional<User> findByAuthentication(Authentication authentication);
 
     void saveUser(UserDto userDto);
 
-    Optional<UserDto> findByUsername(String username);
+    Optional<UserDto> getUserProfileByUsername(UserDto userDto);
 }

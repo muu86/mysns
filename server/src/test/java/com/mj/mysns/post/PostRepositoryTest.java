@@ -3,12 +3,12 @@ package com.mj.mysns.post;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.mj.mysns.post.entity.FileLocation;
-import com.mj.mysns.post.entity.FileLocation.FileLocationType;
+import com.mj.mysns.common.file.FileLocation;
+import com.mj.mysns.common.file.FileLocation.FileLocationType;
 import com.mj.mysns.post.entity.Post;
 import com.mj.mysns.post.entity.PostFile;
 import com.mj.mysns.post.repository.PostRepository;
-import com.mj.mysns.user.UserRepository;
+import com.mj.mysns.user.repository.UserRepository;
 import com.mj.mysns.user.entity.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,8 +65,8 @@ public class PostRepositoryTest {
         created.getFiles().add(PostFile.builder().post(created).displayOrder(2).fileLocation(new FileLocation(FileLocationType.S3, "333")).build());
         saved = postRepository.save(created);
 
-        assertNotNull(saved.getPostId());
-        assertEquals(saved.getPostId(), created.getPostId());
+        assertNotNull(saved.getId());
+        assertEquals(saved.getId(), created.getId());
     }
 
 }

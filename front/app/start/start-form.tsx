@@ -2,9 +2,11 @@
 
 import { Session } from 'next-auth';
 import { ChangeEventHandler, useRef, useState } from 'react';
-import { createUser } from '../lib/actions/user';
-import { LegalAddress } from '../types/definitions';
-import DropdownSearch from '../ui/dropdown-search';
+import { createUser } from '@/app/lib/actions/user';
+import { LegalAddress } from '@/app/types/definitions';
+import DropdownSearch from '@/app/ui/dropdown-search';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export type SelectedAddress = {
   sido: string;
@@ -37,6 +39,9 @@ export default function StartForm({
 
   const usernameRef = useRef<HTMLInputElement | null>(null);
   const babyAgeRef = useRef<HTMLInputElement | null>(null);
+
+  const { update } = useSession();
+  const router = useRouter();
 
   const handleUsernameChange: ChangeEventHandler<HTMLInputElement> = (
     event
@@ -86,6 +91,13 @@ export default function StartForm({
     const result = await createUser(fd);
     if (result?.error) {
       setError(result.body);
+    }
+    if (result?.message === 'success') {
+      console.log('this is before call update');
+      await update({
+        username: username,
+      });
+      router.push('/');
     }
   };
 

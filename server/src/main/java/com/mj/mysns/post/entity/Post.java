@@ -1,6 +1,5 @@
 package com.mj.mysns.post.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mj.mysns.location.entity.LegalAddress;
 import com.mj.mysns.user.entity.User;
 import jakarta.persistence.CascadeType;
@@ -9,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
@@ -34,13 +32,12 @@ public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postId;
+    private Long id;
 
     @Version
     private Long version;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(length = 300)
@@ -53,7 +50,6 @@ public class Post {
 
     @ManyToOne
     @Setter
-    @JsonIgnoreProperties("location")
     private LegalAddress legalAddress;
 
     private LocalDateTime createdAt;
